@@ -19,6 +19,7 @@ struct LiveMineSceneView: View {
     @State private var lanternSwayAngle: Double = -6
     @State private var lanternFlicker: Double = 0.9
     @State private var isSparkVisible: Bool = false
+    @State private var elevatorCabinY: CGFloat = -24
     
     // Easter Egg zıplama animasyon durumları
     @State private var leftWorkerJump: CGFloat = 0
@@ -91,6 +92,12 @@ struct LiveMineSceneView: View {
             // Ray Hattı
             railTracks
                 .offset(y: 30)
+            
+            // Dikey Asansör Kuyusu (Sol Kenar)
+            HStack {
+                elevatorShaftColumn
+                Spacer()
+            }
             
             // Hareketli Araç (Vagon veya Seviye 10+ Mini Buharlı Lokomotif)
             Group {
@@ -589,9 +596,55 @@ struct LiveMineSceneView: View {
         withAnimation(.easeInOut(duration: 0.25).repeatForever(autoreverses: true)) {
             lanternFlicker = 1.15
         }
+        withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+            elevatorCabinY = 24
+        }
         Timer.scheduledTimer(withTimeInterval: minerSwingSpeed, repeats: true) { _ in
             isSparkVisible.toggle()
         }
+    }
+    
+    // MARK: - Dikey Asansör Şaftı (Sol Kenar)
+    private var elevatorShaftColumn: some View {
+        ZStack {
+            // Şaft Çelik Direkleri
+            HStack(spacing: 8) {
+                Rectangle().fill(Color(white: 0.22)).frame(width: 1.5)
+                Rectangle().fill(Color(white: 0.22)).frame(width: 1.5)
+            }
+            .frame(height: 96)
+            
+            // Asansör Çelik Halatı
+            Rectangle()
+                .fill(Color(white: 0.45))
+                .frame(width: 1, height: 96)
+            
+            // Üst Dönen Makara Dişlisi
+            Circle()
+                .stroke(Color.yellow.opacity(0.8), lineWidth: 1.2)
+                .frame(width: 7, height: 7)
+                .offset(y: -42)
+            
+            // Hareketli Asansör Kabini
+            ZStack {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 0.18, green: 0.16, blue: 0.22))
+                    .frame(width: 12, height: 16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 2)
+                            .stroke(Color.yellow.opacity(0.7), lineWidth: 0.8)
+                    )
+                
+                // İçindeki Altın Kasası
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(LinearGradient(colors: [.yellow, .orange], startPoint: .top, endPoint: .bottom))
+                    .frame(width: 6, height: 5)
+                    .offset(y: 2)
+            }
+            .offset(y: elevatorCabinY)
+        }
+        .frame(width: 14, height: 96)
+        .padding(.leading, 4)
     }
     
     // MARK: - Düşünce Döngüsü

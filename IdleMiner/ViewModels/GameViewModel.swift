@@ -56,6 +56,8 @@ struct GameSaveData: Codable {
     var artifacts: [Artifact]?
     var currentWorldId: String?
     var comboProgress: Double?
+    var shafts: [MineShaft]?
+    var elevatorLevel: Int?
 }
 
 @MainActor
@@ -163,6 +165,10 @@ final class GameViewModel: ObservableObject {
     private var merchantCooldown: Double = 15.0 // İlk açılışta 15 saniyede deneme şansı, sonra 120-180s
     @Published var merchantMidasTimeRemaining: Double = 0.0 // 3x tık gücü
     @Published var merchantTurboTimeRemaining: Double = 0.0 // 2.5x hız & pasif
+    
+    // MARK: - 10. Mekanik: Dikey Asansör Kuyusu & Maden Şaftları
+    @Published var shafts: [MineShaft] = MineShaft.defaultShafts
+    @Published var elevatorLevel: Int = 1
     
     // MARK: - Prestij (Rebirth) Değişkenleri
     @Published var prestigeLevel: Int = 0
@@ -313,6 +319,13 @@ final class GameViewModel: ObservableObject {
         return clickPower * multiplier
     }
     
+    // Maden Şaftları ve Asansör Toplam Pasif Geliri
+    var shaftPassiveIncome: Double {
+        let baseTotal = shafts.filter { $0.isUnlocked }.reduce(0.0) { $0 + $1.currentIncomePerSec }
+        let elevatorMultiplier = 1.0 + Double(elevatorLevel - 1) * 0.25
+        return baseTotal * elevatorMultiplier
+    }
+    
     var effectivePassiveIncome: Double {
         var multiplier = prestigeMultiplier * currentOreLayer.bonusMultiplier * currentWorld.globalMultiplier
         if isFrenzyActive { multiplier *= 5.0 } // Çılgınlık Modu 5x kazanç
@@ -326,7 +339,7 @@ final class GameViewModel: ObservableObject {
         let museum = calculateMuseumMultipliers()
         multiplier *= (1.0 + museum.passiveBoost + museum.setSynergyBoost)
         
-        return passiveIncome * multiplier
+        return (passiveIncome + shaftPassiveIncome) * multiplier
     }
     
     var minerApprenticeLevel: Int {
@@ -745,6 +758,56 @@ final class GameViewModel: ObservableObject {
         saveGame()
     }
     
+    // MARK: - Asansör ve Maden Şaftı İşlemleri
+    var elevatorUpgradeCost: Double {
+        return 500.0 * pow(1.5, Double(max(0, elevatorLevel - 1)))
+    }
+    
+    var canUpgradeElevator: Bool {
+        return gold >= elevatorUpgradeCost
+    }
+    
+    func upgradeElevator() {
+        guard canUpgradeElevator else { return }
+        gold -= elevatorUpgradeCost
+        elevatorLevel += 1
+        AudioManager.shared.playUpgradeSound()
+        AudioManager.shared.triggerImpact(style: .medium)
+        saveGame()
+    }
+    
+    func unlockShaft(id: Int) {
+        guard let index = shafts.firstIndex(where: { $0.id == id }) else { return }
+        guard !shafts[index].isUnlocked else { return }
+        guard depth >= shafts[index].depthRequirement else { return }
+        guard gold >= shafts[index].unlockCost else { return }
+        
+        gold -= shafts[index].unlockCost
+        shafts[index].isUnlocked = true
+        shafts[index].level = 1
+        
+        // Yeni kata ulaşılınca derinliği artır
+        depth = max(depth, shafts[index].depthRequirement + 15.0)
+        
+        AudioManager.shared.playCelebrationSound()
+        AudioManager.shared.triggerNotification(type: .success)
+        saveGame()
+    }
+    
+    func upgradeShaft(id: Int) {
+        guard let index = shafts.firstIndex(where: { $0.id == id }) else { return }
+        guard shafts[index].isUnlocked else { return }
+        let cost = shafts[index].upgradeCost
+        guard gold >= cost else { return }
+        
+        gold -= cost
+        shafts[index].level += 1
+        
+        AudioManager.shared.playUpgradeSound()
+        AudioManager.shared.triggerImpact(style: .light)
+        saveGame()
+    }
+    
     private func showBanner(_ message: String) {
         // Kullanıcı isteği: Rahatsız edici bildirim balonları tamamen kapatıldı
         return
@@ -851,7 +914,9 @@ final class GameViewModel: ObservableObject {
             quests: quests,
             artifacts: artifacts,
             currentWorldId: currentWorldId,
-            comboProgress: comboProgress
+            comboProgress: comboProgress,
+            shafts: shafts,
+            elevatorLevel: elevatorLevel
         )
         
         if let encoded = try? JSONEncoder().encode(saveData) {
@@ -877,6 +942,12 @@ final class GameViewModel: ObservableObject {
         }
         if let savedCombo = decoded.comboProgress {
             self.comboProgress = min(max(savedCombo, 0.0), 1.0)
+        }
+        if let savedShafts = decoded.shafts {
+            self.shafts = savedShafts
+        }
+        if let savedElevator = decoded.elevatorLevel {
+            self.elevatorLevel = savedElevator
         }
         
         for savedUpgrade in decoded.upgrades {
@@ -961,6 +1032,9 @@ final class GameViewModel: ObservableObject {
         for i in 0..<artifacts.count {
             artifacts[i].isUnlocked = false
         }
+        
+        self.shafts = MineShaft.defaultShafts
+        self.elevatorLevel = 1
         
         recalculateStats()
         AudioManager.shared.triggerNotification(type: .warning)

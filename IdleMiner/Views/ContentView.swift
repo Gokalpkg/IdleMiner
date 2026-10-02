@@ -12,6 +12,7 @@ struct FloatingNumber: Identifiable {
 
 enum ActiveTab {
     case upgrades
+    case shafts
     case museum
     case gemStore
     case quests
@@ -729,13 +730,14 @@ struct ContentView: View {
     
     // MARK: - Sekme Seçici
     private var tabPicker: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 3) {
             tabButton(title: "Ekipman", icon: "hammer.fill", tab: .upgrades)
+            tabButton(title: "Şaftlar", icon: "arrow.up.and.down.square.fill", tab: .shafts)
             tabButton(title: "Müze", icon: "building.columns.fill", tab: .museum)
             tabButton(title: "Elmas", icon: "sparkles", tab: .gemStore)
             tabButton(title: "Görev", icon: "trophy.fill", tab: .quests)
         }
-        .padding(4)
+        .padding(3)
         .background(Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
@@ -744,21 +746,21 @@ struct ContentView: View {
         Button(action: {
             selectedTab = tab
         }) {
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 9, weight: .bold))
                 Text(title)
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 10.5, weight: .bold))
             }
             .foregroundColor(selectedTab == tab ? .black : .gray)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
+            .padding(.vertical, 6)
             .background(
                 selectedTab == tab ?
                 LinearGradient(colors: [.yellow, .orange], startPoint: .top, endPoint: .bottom) :
                 LinearGradient(colors: [Color.clear, Color.clear], startPoint: .top, endPoint: .bottom)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         }
     }
     
@@ -778,6 +780,8 @@ struct ContentView: View {
                             }
                         )
                     }
+                case .shafts:
+                    MineShaftView(viewModel: viewModel)
                 case .museum:
                     MuseumView(artifacts: viewModel.artifacts, hasOwnScroll: false)
                 case .gemStore:
