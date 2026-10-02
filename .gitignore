@@ -1,0 +1,20 @@
+# Xcode
+.DS_Store
+*/.DS_Store
+build/
+DerivedData/
+*.xcuserstate
+project.xcworkspace/xcuserdata/
+*.xcuserdatad/
+*.moved-aside
+*.ipa
+*.app
+*.dSYM.zip
+*.dSYM
+
+# Fastlane / CocoaPods / SPM
+Pods/
+.build/
+
+# User-specific
+xcuserdata/

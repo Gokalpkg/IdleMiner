@@ -1,0 +1,969 @@
+import SwiftUI
+import Combine
+
+// MARK: - Uçan Şans Sandığı Modeli
+struct LuckyChest: Identifiable {
+    let id = UUID()
+    var xOffset: CGFloat
+    var yOffset: CGFloat
+    var durationRemaining: Double = 12.0
+}
+
+// MARK: - Beklenmedik Mağara Olayı: Altın Köstebeği Modeli
+struct GoldenMole: Identifiable {
+    let id = UUID()
+    var xOffset: CGFloat
+    var yOffset: CGFloat
+    var hitsRemaining: Int = 3
+    var durationRemaining: Double = 6.0
+}
+
+// MARK: - Çevrimdışı Ödül Modeli
+struct OfflineReward: Identifiable {
+    let id = UUID()
+    let elapsedSeconds: Double
+    let amount: Double
+    
+    var formattedDuration: String {
+        let totalSeconds = Int(elapsedSeconds)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+        
+        if hours > 0 {
+            return "\(hours) saat \(minutes) dakika"
+        } else if minutes > 0 {
+            return "\(minutes) dakika \(seconds) saniye"
+        } else {
+            return "\(seconds) saniye"
+        }
+    }
+}
+
+// MARK: - Kayıt Veri Modeli
+struct GameSaveData: Codable {
+    var gold: Double
+    var totalGoldMined: Double
+    var totalClicks: Int
+    var prestigeMultiplier: Double
+    var prestigeLevel: Int
+    var depth: Double
+    var gems: Int
+    var lastSavedTimestamp: TimeInterval
+    var upgrades: [Upgrade]
+    var specialBuffs: [SpecialBuff]
+    var quests: [GameQuest]
+    var artifacts: [Artifact]?
+    var currentWorldId: String?
+    var comboProgress: Double?
+}
+
+@MainActor
+final class GameViewModel: ObservableObject {
+    // MARK: - Temel Durum Değişkenleri
+    @Published var gold: Double = 0
+    @Published var clickPower: Double = 1
+    @Published var passiveIncome: Double = 0
+    @Published var totalGoldMined: Double = 0
+    @Published var totalClicks: Int = 0
+    
+    // MARK: - 3. Mekanik: Dünya Haritası ve Gezegenler
+    @Published var currentWorldId: String = "world_eldorado"
+    @Published var showWorldMapModal: Bool = false
+    
+    var currentWorld: MineWorld {
+        MineWorld.allWorlds.first(where: { $0.id == currentWorldId }) ?? MineWorld.allWorlds[0]
+    }
+    
+    // MARK: - 4. Mekanik: Telsiz & Madenci Diyalogları
+    @Published var activeRadioMessage: MinerRadioMessage? = nil
+    private var radioCooldown: Double = 12.0 // Her 12-25 saniyede bir telsiz anonsu
+    
+    // MARK: - Maden Derinliği ve Cevher Evrimi
+    @Published var depth: Double = 0
+    
+    var currentOreLayer: OreLayer {
+        OreLayer.currentLayer(for: depth)
+    }
+    
+    // MARK: - Antik Eserler & Fosil Müzesi
+    @Published var artifacts: [Artifact] = Artifact.defaultArtifacts
+    @Published var newlyDiscoveredArtifact: Artifact? = nil
+    private var passiveDropAccumulator: Double = 0.0
+    
+    // MARK: - Elmas Para Birimi & Özel Güçlendirmeler
+    @Published var gems: Int = 0
+    @Published var specialBuffs: [SpecialBuff] = [
+        SpecialBuff(
+            id: "buff_pickaxe",
+            name: "Elmas Kazma Başı",
+            icon: "hammer.circle.fill",
+            description: "Kalıcı +%100 Tıklama Gücü",
+            gemCost: 10,
+            isPurchased: false,
+            clickMultiplierBonus: 2.0,
+            passiveMultiplierBonus: 1.0
+        ),
+        SpecialBuff(
+            id: "buff_magnet",
+            name: "Altın Mıknatısı",
+            icon: "bolt.circle.fill",
+            description: "Kalıcı +%100 Pasif Gelir",
+            gemCost: 20,
+            isPurchased: false,
+            clickMultiplierBonus: 1.0,
+            passiveMultiplierBonus: 2.0
+        ),
+        SpecialBuff(
+            id: "buff_prestige_booster",
+            name: "Yatırımcı Güveni",
+            icon: "crown.fill",
+            description: "Tüm kazancı kalıcı olarak 2 katına çıkarır",
+            gemCost: 40,
+            isPurchased: false,
+            clickMultiplierBonus: 2.0,
+            passiveMultiplierBonus: 2.0
+        )
+    ]
+    
+    // MARK: - Görev & Başarım Sistemi
+    @Published var quests: [GameQuest] = [
+        GameQuest(id: "q_clicks_50", title: "İlk Kazma Vuruşları", description: "50 kez madene tıkla", targetValue: 50, type: .clicks, gemReward: 5),
+        GameQuest(id: "q_depth_150", title: "Bakır Damarına Ulaş", description: "150 metre derinliğe in", targetValue: 150, type: .depth, gemReward: 10),
+        GameQuest(id: "q_gold_10k", title: "Küçük Maden Sahibi", description: "Toplam 10.000 Altın topla", targetValue: 10000, type: .totalGold, gemReward: 15),
+        GameQuest(id: "q_depth_500", title: "Demir Çağı", description: "500 metre derinliğe in", targetValue: 500, type: .depth, gemReward: 20),
+        GameQuest(id: "q_prestige_1", title: "Büyük Holding", description: "İlk maden devrini (Rebirth) gerçekleştir", targetValue: 1, type: .prestige, gemReward: 30)
+    ]
+    
+    // MARK: - Uçan Şans Sandığı & Çılgınlık Modu (Frenzy) & Alevli Kombo Barı
+    @Published var luckyChest: LuckyChest?
+    @Published var isFrenzyActive: Bool = false
+    @Published var frenzyTimeRemaining: Double = 0.0
+    @Published var bannerNotification: String?
+    private var chestSpawnCooldown: Double = 25.0
+    
+    // Alevli Kombo Barı (Her seri tıkta artar, tıklanmadıkça yavaşça söner)
+    @Published var comboProgress: Double = 0.0 // 0.0 - 1.0 aralığı
+    private var comboDecayTimer: Double = 0.0
+    
+    // MARK: - Cevher Çatlama Mekaniği (Ore Cracking)
+    @Published var oreCrackRatio: Double = 0.0 // 0.0: pürüzsüz, 1.0: sonuna kadar çatlamış
+    @Published var didOreShatter: Bool = false
+    private var crackResetWorkItem: DispatchWorkItem?
+    
+    // MARK: - Beklenmedik Mağara Olayı: Altın Köstebeği
+    @Published var goldenMole: GoldenMole?
+    private var moleSpawnCooldown: Double = 45.0 // Nadir çıksın (~45-70s)
+    
+    // MARK: - Gizemli Gezgin Tüccar (Kara Borsa)
+    @Published var isMerchantActive: Bool = false
+    @Published var merchantTimeRemaining: Double = 180.0
+    @Published var merchantOffers: [MerchantOffer] = []
+    @Published var showMerchantModal: Bool = false
+    private var merchantCooldown: Double = 15.0 // İlk açılışta 15 saniyede deneme şansı, sonra 120-180s
+    @Published var merchantMidasTimeRemaining: Double = 0.0 // 3x tık gücü
+    @Published var merchantTurboTimeRemaining: Double = 0.0 // 2.5x hız & pasif
+    
+    // MARK: - Prestij (Rebirth) Değişkenleri
+    @Published var prestigeLevel: Int = 0
+    @Published var prestigeMultiplier: Double = 1.0
+    @Published var showPrestigeModal: Bool = false
+    
+    var prestigeCost: Double {
+        return 50000.0 * pow(3.0, Double(prestigeLevel))
+    }
+    
+    var canPrestige: Bool {
+        return gold >= prestigeCost
+    }
+    
+    // MARK: - Karşılama Pop-up'ı Durumu
+    @Published var offlineReward: OfflineReward?
+    @Published var showOfflineModal: Bool = false
+    
+    // MARK: - Yükseltmeler
+    @Published var upgrades: [Upgrade] = [
+        Upgrade(
+            id: "stone_pickaxe",
+            name: "Taş Kazma",
+            icon: "hammer.fill",
+            description: "Her vuruşta ekstra +1 Altın",
+            type: .clickPower,
+            level: 0,
+            baseCost: 15,
+            baseEffect: 1,
+            costMultiplier: 1.15
+        ),
+        Upgrade(
+            id: "miner_apprentice",
+            name: "Çırak Madenci",
+            icon: "person.fill",
+            description: "Saniyede +1 pasif Altın üretir",
+            type: .passiveIncome,
+            level: 0,
+            baseCost: 50,
+            baseEffect: 1,
+            costMultiplier: 1.15
+        ),
+        Upgrade(
+            id: "iron_pickaxe",
+            name: "Demir Kazma",
+            icon: "bolt.fill",
+            description: "Her vuruşta ekstra +5 Altın",
+            type: .clickPower,
+            level: 0,
+            baseCost: 250,
+            baseEffect: 5,
+            costMultiplier: 1.15
+        ),
+        Upgrade(
+            id: "mine_cart",
+            name: "Maden Vagonu",
+            icon: "cart.fill",
+            description: "Saniyede +8 pasif Altın taşır",
+            type: .passiveIncome,
+            level: 0,
+            baseCost: 1000,
+            baseEffect: 8,
+            costMultiplier: 1.15
+        ),
+        Upgrade(
+            id: "dynamite_expert",
+            name: "Dinamit Uzmanı",
+            icon: "flame.fill",
+            description: "Saniyede +35 pasif Altın patlatır",
+            type: .passiveIncome,
+            level: 0,
+            baseCost: 5000,
+            baseEffect: 35,
+            costMultiplier: 1.15
+        ),
+        Upgrade(
+            id: "steam_drill",
+            name: "Buharlı Matkap",
+            icon: "gearshape.2.fill",
+            description: "Saniyede +150 pasif Altın deler",
+            type: .passiveIncome,
+            level: 0,
+            baseCost: 25000,
+            baseEffect: 150,
+            costMultiplier: 1.15
+        )
+    ]
+    
+    // MARK: - Zamanlayıcı (Timer)
+    private var timer: AnyCancellable?
+    private let tickInterval: Double = 0.1
+    private var autoSaveCounter: Int = 0
+    private let saveKey = "IdleMiner_SaveData_v4"
+    
+    init() {
+        loadGame()
+        recalculateStats()
+        checkOfflineProgress()
+        startPassiveTimer()
+    }
+    
+    // MARK: - Müze Eser Çarpanları & Set Sinerjileri (Synergy)
+    /// Açılmış olan tüm eserlerin ve tamamlanan setlerin bonuslarını toplayıp ana oyundaki üretim formülüne ekler.
+    func calculateMuseumMultipliers() -> (clickBoost: Double, passiveBoost: Double, dropRateBoost: Double, setSynergyBoost: Double) {
+        var clickBoost: Double = 0.0
+        var passiveBoost: Double = 0.0
+        var dropRateBoost: Double = 0.0
+        var setSynergyBoost: Double = 0.0
+        
+        for artifact in artifacts where artifact.isUnlocked {
+            switch artifact.bonusType {
+            case .clickPowerBoost(let value):
+                clickBoost += value
+            case .passiveIncomeBoost(let value):
+                passiveBoost += value
+            case .rareDropRateBoost(let value):
+                dropRateBoost += value
+            }
+        }
+        
+        // Tamamlanan Set Bonusları (Örn: Dinozor Çağı Seti: T-Rex + Fosil Diş -> +%25 Kalıcı Tüm Gezegen Kazancı)
+        for aSet in ArtifactSet.allSets {
+            let isComplete = aSet.requiredArtifactNames.allSatisfy { name in
+                artifacts.contains { $0.name == name && $0.isUnlocked }
+            }
+            if isComplete {
+                setSynergyBoost += aSet.globalMultiplierBonus
+            }
+        }
+        
+        return (clickBoost: clickBoost, passiveBoost: passiveBoost, dropRateBoost: dropRateBoost, setSynergyBoost: setSynergyBoost)
+    }
+    
+    // Toplam çarpanlar (Katman Çarpanı * Gezegen Çarpanı * Prestij Çarpanı * Çılgınlık Modu * Elmas Buffları * Müze Eserleri & Set Sinerjileri)
+    var effectiveClickPower: Double {
+        var multiplier = prestigeMultiplier * currentOreLayer.bonusMultiplier * currentWorld.globalMultiplier
+        if isFrenzyActive { multiplier *= 5.0 } // Çılgınlık Modu 5x kazanç
+        if merchantMidasTimeRemaining > 0 { multiplier *= 3.0 } // Midas İksiri 3x kazanç
+        
+        for buff in specialBuffs where buff.isPurchased {
+            multiplier *= buff.clickMultiplierBonus
+        }
+        
+        // Müze Tıklama Bonusu & Set Sinerjisi
+        let museum = calculateMuseumMultipliers()
+        multiplier *= (1.0 + museum.clickBoost + museum.setSynergyBoost)
+        
+        return clickPower * multiplier
+    }
+    
+    var effectivePassiveIncome: Double {
+        var multiplier = prestigeMultiplier * currentOreLayer.bonusMultiplier * currentWorld.globalMultiplier
+        if isFrenzyActive { multiplier *= 5.0 } // Çılgınlık Modu 5x kazanç
+        if merchantTurboTimeRemaining > 0 { multiplier *= 2.5 } // Turbo Şurup 2.5x kazanç
+        
+        for buff in specialBuffs where buff.isPurchased {
+            multiplier *= buff.passiveMultiplierBonus
+        }
+        
+        // Müze Pasif Gelir Bonusu & Set Sinerjisi
+        let museum = calculateMuseumMultipliers()
+        multiplier *= (1.0 + museum.passiveBoost + museum.setSynergyBoost)
+        
+        return passiveIncome * multiplier
+    }
+    
+    var minerApprenticeLevel: Int {
+        upgrades.first(where: { $0.id == "miner_apprentice" })?.level ?? 0
+    }
+    
+    var mineCartLevel: Int {
+        upgrades.first(where: { $0.id == "mine_cart" })?.level ?? 0
+    }
+    
+    var dynamiteExpertLevel: Int {
+        upgrades.first(where: { $0.id == "dynamite_expert" })?.level ?? 0
+    }
+    
+    var steamDrillLevel: Int {
+        upgrades.first(where: { $0.id == "steam_drill" })?.level ?? 0
+    }
+    
+    // MARK: - İşçiye Dokunma (Easter Egg)
+    func triggerWorkerEasterEgg(workerName: String) -> Double {
+        let bonus = max(effectiveClickPower * 0.5, 10.0)
+        gold += bonus
+        totalGoldMined += bonus
+        
+        AudioManager.shared.triggerImpact(style: .medium)
+        AudioManager.shared.playUpgradeSound()
+        showBanner("🎉 \(workerName) zıpladı! +\(BigNumberFormatter.format(bonus)) Altın!")
+        return bonus
+    }
+    
+    // MARK: - Gezegen / Maden Seyahati
+    func travelToWorld(_ world: MineWorld) {
+        currentWorldId = world.id
+        showWorldMapModal = false
+        showBanner("🚀 \(world.name) Madenine İniş Yapıldı! (\(Int(world.globalMultiplier))x)")
+        AudioManager.shared.playCelebrationSound()
+        AudioManager.shared.triggerNotification(type: .success)
+        saveGame()
+    }
+    
+    // MARK: - Eser Düşme (Drop) Mantığı
+    /// Oyuncu madene tıkladığında veya saniyelik pasif kazanç sağlandığında arka planda çalışır.
+    /// Henüz açılmamış eserler arasından rastgele zar atılır.
+    func checkArtifactDrop(isPassive: Bool = false) {
+        // Zaten ekranda bekleyen keşif modalı varsa yeni bir tane tetikleme
+        guard newlyDiscoveredArtifact == nil else { return }
+        
+        let lockedIndices = artifacts.indices.filter { !artifacts[$0].isUnlocked }
+        guard !lockedIndices.isEmpty else { return }
+        
+        // Eserlerden gelen ek drop oranı bonusu (Örn: +%5 -> rareDropRateBoost)
+        let museum = calculateMuseumMultipliers()
+        let dropRateMultiplier = 1.0 + museum.dropRateBoost
+        
+        // Pasif kazanç kontrolünde tıklamaya göre daha seyrek şans vermek için katsayı
+        let rateDampener = isPassive ? 0.35 : 1.0
+        
+        // Kilitli eserler arasından zar atımı (Önce en nadir olanlardan başlar)
+        for index in lockedIndices.shuffled() {
+            let artifact = artifacts[index]
+            let effectiveChance = artifact.rarity.dropChance * dropRateMultiplier * rateDampener
+            let roll = Double.random(in: 0.0...1.0)
+            
+            if roll < effectiveChance {
+                // Eser Düştü!
+                artifacts[index].isUnlocked = true
+                newlyDiscoveredArtifact = artifacts[index]
+                
+                AudioManager.shared.playCelebrationSound()
+                AudioManager.shared.triggerNotification(type: .success)
+                saveGame()
+                break
+            }
+        }
+    }
+    
+    // MARK: - Vuruş Sonucu Modeli
+    struct StrikeResult {
+        let isCritical: Bool
+        let amountEarned: Double
+        let didShatterOre: Bool
+    }
+    
+    // MARK: - Ana Tıklama Mekaniği, Nadir Kritik Vuruş (%0.8) & SFX & Cevher Canı/Çatlama
+    @discardableResult
+    func mineGold() -> StrikeResult {
+        // Çok Nadir Kritik Vuruş Şansı Kontrolü (%0.8)
+        let roll = Double.random(in: 0.0...1.0)
+        let isCritical = roll < 0.008
+        
+        // Kritik vuruş normal sayı yerine 10x altın verir!
+        let baseEarned = effectiveClickPower
+        let earned = isCritical ? (baseEarned * 10.0) : baseEarned
+        
+        gold += earned
+        totalGoldMined += earned
+        totalClicks += 1
+        depth += 1.0
+        
+        // Çatlama İlerlemesi: Bastıkça ufak çatlak oluşur, sonuna gelince öylece kalır, 3 sn sonra geri döner
+        crackResetWorkItem?.cancel()
+        
+        let crackIncrement: Double = isCritical ? 0.045 : 0.022
+        withAnimation(.easeOut(duration: 0.12)) {
+            self.oreCrackRatio = min(1.0, self.oreCrackRatio + crackIncrement)
+        }
+        
+        let resetItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            withAnimation(.easeInOut(duration: 0.8)) {
+                self.oreCrackRatio = 0.0
+            }
+        }
+        crackResetWorkItem = resetItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: resetItem)
+        
+        let didShatter = false
+        
+        // Enerji / Kombo Barını Doldur (10-15 dakika gerçek oynanışta dolacak şekilde ayarlandı)
+        if !isFrenzyActive {
+            // ~2500 vuruş (ortalama 10-15 dakika aktif oynanış)
+            let increment = isCritical ? 0.0008 : 0.0004
+            comboProgress = min(comboProgress + increment, 1.0)
+            
+            if comboProgress >= 1.0 {
+                isFrenzyActive = true
+                frenzyTimeRemaining = 8.0 // Tam 8 saniye sürer ve biter
+                comboProgress = 0.0
+                showBanner("🔥 ENERJİ DOLDU! 5X ÇILGINLIK MODU AKTİF! (8s)")
+                AudioManager.shared.playCelebrationSound()
+                AudioManager.shared.triggerNotification(type: .success)
+            }
+        }
+        
+        // Eser düşme kontrolü
+        checkArtifactDrop(isPassive: false)
+        
+        // Haptik & Ses:
+        if isCritical {
+            AudioManager.shared.triggerImpact(style: .heavy)
+            AudioManager.shared.playCriticalHitSound()
+        } else {
+            AudioManager.shared.triggerImpact(style: .light)
+            AudioManager.shared.playOreHitSound(for: currentOreLayer.name)
+        }
+        
+        return StrikeResult(isCritical: isCritical, amountEarned: earned, didShatterOre: didShatter)
+    }
+    
+    func claimNewlyDiscoveredArtifact() {
+        guard let artifact = newlyDiscoveredArtifact else { return }
+        newlyDiscoveredArtifact = nil
+        showBanner("🏛️ \(artifact.name) Müzeye Eklendi!")
+        
+        // Eser bulma / Prestij: UINotificationFeedbackGenerator().notificationOccurred(.success)
+        AudioManager.shared.triggerNotification(type: .success)
+        AudioManager.shared.playCelebrationSound()
+        saveGame()
+    }
+    
+    // MARK: - Pasif Gelir & Telsiz & Şans Sandığı Döngüsü
+    private func startPassiveTimer() {
+        timer = Timer.publish(every: tickInterval, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                
+                // Pasif Gelir
+                if self.effectivePassiveIncome > 0 {
+                    let earned = self.effectivePassiveIncome * self.tickInterval
+                    self.gold += earned
+                    self.totalGoldMined += earned
+                    self.depth += (self.passiveIncome * 0.05) * self.tickInterval
+                    
+                    // Saniyelik pasif kazanç sağlandığında eser düşme zar kontrolü (her 1 saniyede bir)
+                    self.passiveDropAccumulator += self.tickInterval
+                    if self.passiveDropAccumulator >= 1.0 {
+                        self.passiveDropAccumulator = 0
+                        self.checkArtifactDrop(isPassive: true)
+                    }
+                }
+                
+                // Enerji Barı Pasif Katkı (10-15 dakikada dolumu destekler, oyuncunun emeğini silmez)
+                if !self.isFrenzyActive && self.comboProgress < 1.0 {
+                    self.comboProgress = min(self.comboProgress + (0.00004 * self.tickInterval), 1.0)
+                    if self.comboProgress >= 1.0 {
+                        self.isFrenzyActive = true
+                        self.frenzyTimeRemaining = 8.0 // 8 saniye
+                        self.comboProgress = 0.0
+                        self.showBanner("🔥 ENERJİ DOLDU! 5X ÇILGINLIK MODU AKTİF! (8s)")
+                        AudioManager.shared.playCelebrationSound()
+                        AudioManager.shared.triggerNotification(type: .success)
+                    }
+                }
+                
+                // Çılgınlık Modu Geri Sayımı
+                if self.isFrenzyActive {
+                    self.frenzyTimeRemaining -= self.tickInterval
+                    if self.frenzyTimeRemaining <= 0 {
+                        self.isFrenzyActive = false
+                    }
+                }
+                
+                // Tüccar İksir Süreleri
+                if self.merchantMidasTimeRemaining > 0 {
+                    self.merchantMidasTimeRemaining = max(0, self.merchantMidasTimeRemaining - self.tickInterval)
+                }
+                if self.merchantTurboTimeRemaining > 0 {
+                    self.merchantTurboTimeRemaining = max(0, self.merchantTurboTimeRemaining - self.tickInterval)
+                }
+                
+                // Gizemli Gezgin Tüccar Doğuş & Kalan Süre Döngüsü
+                if self.isMerchantActive {
+                    self.merchantTimeRemaining -= self.tickInterval
+                    if self.merchantTimeRemaining <= 0 {
+                        self.isMerchantActive = false
+                        self.showMerchantModal = false
+                        self.merchantOffers = []
+                        self.merchantCooldown = Double.random(in: 120.0...180.0)
+                        self.showBanner("Tüccar tünellerin karanlığına karıştı...")
+                    }
+                } else {
+                    self.merchantCooldown -= self.tickInterval
+                    if self.merchantCooldown <= 0 {
+                        self.spawnMerchant()
+                    }
+                }
+                
+                // Uçan Sandık Spawn Kontrolü
+                if self.luckyChest == nil {
+                    self.chestSpawnCooldown -= self.tickInterval
+                    if self.chestSpawnCooldown <= 0 {
+                        self.spawnLuckyChest()
+                        self.chestSpawnCooldown = Double.random(in: 25.0...40.0)
+                    }
+                } else {
+                    if var chest = self.luckyChest {
+                        chest.durationRemaining -= self.tickInterval
+                        if chest.durationRemaining <= 0 {
+                            self.luckyChest = nil
+                        } else {
+                            self.luckyChest = chest
+                        }
+                    }
+                }
+                
+                // Altın Köstebeği Spawn & Geri Sayım Kontrolü
+                if self.goldenMole == nil {
+                    self.moleSpawnCooldown -= self.tickInterval
+                    if self.moleSpawnCooldown <= 0 {
+                        self.spawnGoldenMole()
+                        self.moleSpawnCooldown = Double.random(in: 45.0...70.0)
+                    }
+                } else {
+                    if var mole = self.goldenMole {
+                        mole.durationRemaining -= self.tickInterval
+                        if mole.durationRemaining <= 0 {
+                            self.goldenMole = nil
+                        } else {
+                            self.goldenMole = mole
+                        }
+                    }
+                }
+                
+                // 10 saniyede bir oto-kayıt
+                self.autoSaveCounter += 1
+                if self.autoSaveCounter >= 100 {
+                    self.autoSaveCounter = 0
+                    self.saveGame()
+                }
+            }
+    }
+    
+    func dismissRadioMessage() {
+        activeRadioMessage = nil
+    }
+    
+    // MARK: - Altın Köstebeği (Quick-Time Event)
+    private func spawnGoldenMole() {
+        let randomX = CGFloat.random(in: -110...110)
+        let randomY = CGFloat.random(in: -90...130)
+        goldenMole = GoldenMole(xOffset: randomX, yOffset: randomY, hitsRemaining: 3, durationRemaining: 6.0)
+    }
+    
+    func tapGoldenMole() {
+        guard var mole = goldenMole else { return }
+        mole.hitsRemaining -= 1
+        
+        AudioManager.shared.triggerImpact(style: .medium)
+        AudioManager.shared.playCriticalHitSound()
+        
+        if mole.hitsRemaining <= 0 {
+            goldenMole = nil
+            gems += 1
+            showBanner("🦔 YAKALANDI! Altın Köstebek'ten +1 Elmas!")
+            AudioManager.shared.triggerNotification(type: .success)
+            AudioManager.shared.playCelebrationSound()
+            saveGame()
+        } else {
+            // Hızlıca kaçıp başka konuma zıplar
+            mole.xOffset = CGFloat.random(in: -110...110)
+            mole.yOffset = CGFloat.random(in: -90...130)
+            goldenMole = mole
+        }
+    }
+    
+    // MARK: - Şans Sandığı
+    private func spawnLuckyChest() {
+        let randomX = CGFloat.random(in: -120...120)
+        let randomY = CGFloat.random(in: -80...120)
+        luckyChest = LuckyChest(xOffset: randomX, yOffset: randomY, durationRemaining: 12.0)
+    }
+    
+    func openLuckyChest() {
+        guard luckyChest != nil else { return }
+        luckyChest = nil
+        
+        let rewardType = Int.random(in: 1...3)
+        AudioManager.shared.playCelebrationSound()
+        AudioManager.shared.triggerNotification(type: .success)
+        
+        switch rewardType {
+        case 1:
+            let frenzyDuration = 25.0
+            isFrenzyActive = true
+            frenzyTimeRemaining = frenzyDuration
+            showBanner("🔥 7X ÇILGINLIK MODU AKTİF! (\(Int(frenzyDuration))s)")
+        case 2:
+            let bonusGold = max(effectivePassiveIncome * 60, effectiveClickPower * 80, 500)
+            gold += bonusGold
+            totalGoldMined += bonusGold
+            showBanner("💰 ŞANSLI HAZİNE: +\(BigNumberFormatter.format(bonusGold)) Altın!")
+        default:
+            let gemReward = Int.random(in: 2...5)
+            gems += gemReward
+            showBanner("💎 ŞANSLI KEŞİF: +\(gemReward) Elmas!")
+        }
+        
+        saveGame()
+    }
+    
+    // MARK: - Gizemli Gezgin Tüccar İşlemleri
+    func spawnMerchant() {
+        isMerchantActive = true
+        merchantTimeRemaining = 180.0 // 3 dakika
+        merchantOffers = MerchantOffer.generateOffers(
+            passiveIncome: effectivePassiveIncome,
+            clickPower: effectiveClickPower,
+            depth: depth
+        )
+        merchantCooldown = Double.random(in: 120.0...180.0)
+        AudioManager.shared.playMerchantArrivalSound()
+        AudioManager.shared.triggerNotification(type: .warning)
+    }
+    
+    func purchaseMerchantOffer(offer: MerchantOffer) {
+        guard !offer.isPurchased else { return }
+        
+        // Bakiye kontrolü
+        switch offer.currency {
+        case .gold:
+            guard gold >= offer.cost else { return }
+            gold -= offer.cost
+        case .gems:
+            guard Double(gems) >= offer.cost else { return }
+            gems -= Int(offer.cost)
+        }
+        
+        // Satın alındı olarak işaretle
+        if let idx = merchantOffers.firstIndex(where: { $0.id == offer.id }) {
+            merchantOffers[idx].isPurchased = true
+        }
+        
+        // Eşya Etkisini Uygula
+        switch offer.itemType {
+        case .contrabandDynamite:
+            let bonusGold = max(3000.0, (effectivePassiveIncome * 300.0) + (effectiveClickPower * 100.0))
+            gold += bonusGold
+            totalGoldMined += bonusGold
+            AudioManager.shared.playCriticalHitSound()
+            AudioManager.shared.triggerImpact(style: .heavy)
+            
+        case .midasElixir:
+            merchantMidasTimeRemaining = 60.0
+            AudioManager.shared.playMerchantPurchaseSound()
+            AudioManager.shared.triggerImpact(style: .medium)
+            
+        case .turboTonic:
+            merchantTurboTimeRemaining = 90.0
+            AudioManager.shared.playMerchantPurchaseSound()
+            AudioManager.shared.triggerImpact(style: .medium)
+            
+        case .forbiddenRelic:
+            AudioManager.shared.playMerchantPurchaseSound()
+            AudioManager.shared.triggerImpact(style: .heavy)
+            if let lockedIndex = artifacts.firstIndex(where: { !$0.isUnlocked }) {
+                artifacts[lockedIndex].isUnlocked = true
+                newlyDiscoveredArtifact = artifacts[lockedIndex]
+            } else {
+                gems += 20
+            }
+            
+        case .shadowDiamondBuy:
+            gems += 6
+            AudioManager.shared.playMerchantPurchaseSound()
+            AudioManager.shared.triggerImpact(style: .medium)
+            
+        case .shadowGoldExchange:
+            let bonusGold = max(8000.0, (effectivePassiveIncome * 600.0) + (effectiveClickPower * 200.0))
+            gold += bonusGold
+            totalGoldMined += bonusGold
+            AudioManager.shared.playMerchantPurchaseSound()
+            AudioManager.shared.triggerImpact(style: .heavy)
+        }
+        
+        saveGame()
+    }
+    
+    private func showBanner(_ message: String) {
+        // Kullanıcı isteği: Rahatsız edici bildirim balonları tamamen kapatıldı
+        return
+    }
+    
+    // MARK: - Elmas Dükkanı
+    func buySpecialBuff(_ buff: SpecialBuff) {
+        guard let index = specialBuffs.firstIndex(where: { $0.id == buff.id }) else { return }
+        guard !specialBuffs[index].isPurchased else { return }
+        guard gems >= specialBuffs[index].gemCost else { return }
+        
+        gems -= specialBuffs[index].gemCost
+        specialBuffs[index].isPurchased = true
+        recalculateStats()
+        saveGame()
+        
+        AudioManager.shared.playCelebrationSound()
+        AudioManager.shared.triggerNotification(type: .success)
+    }
+    
+    // MARK: - Görev Ödülünü Toplama
+    func claimQuestReward(_ quest: GameQuest) {
+        guard let index = quests.firstIndex(where: { $0.id == quest.id }) else { return }
+        guard !quests[index].isClaimed else { return }
+        guard quests[index].isCompleted(currentClicks: totalClicks, currentDepth: depth, totalGold: totalGoldMined, prestigeLevel: prestigeLevel) else { return }
+        
+        quests[index].isClaimed = true
+        gems += quests[index].gemReward
+        saveGame()
+        
+        AudioManager.shared.playCelebrationSound()
+        AudioManager.shared.triggerNotification(type: .success)
+        showBanner("🏆 Görev Tamamlandı: +\(quests[index].gemReward) Elmas!")
+    }
+    
+    // MARK: - Yükseltme Satın Alma
+    func buyUpgrade(_ upgrade: Upgrade) {
+        guard let index = upgrades.firstIndex(where: { $0.id == upgrade.id }) else { return }
+        let currentCost = upgrades[index].cost
+        
+        guard gold >= currentCost else { return }
+        
+        gold -= currentCost
+        upgrades[index].level += 1
+        recalculateStats()
+        saveGame()
+        
+        AudioManager.shared.playUpgradeSound()
+    }
+    
+    // MARK: - Prestij (Rebirth) Mekaniği
+    func performPrestige() {
+        guard canPrestige else { return }
+        
+        gold = 0
+        depth = 0
+        for i in 0..<upgrades.count {
+            upgrades[i].level = 0
+        }
+        
+        prestigeLevel += 1
+        prestigeMultiplier = pow(2.0, Double(prestigeLevel))
+        gems += 10
+        
+        recalculateStats()
+        saveGame()
+        
+        showPrestigeModal = false
+        AudioManager.shared.playCelebrationSound()
+        AudioManager.shared.triggerNotification(type: .success)
+        showBanner("🚀 Maden Devredildi! +10 Elmas & 2x Kazanç!")
+    }
+    
+    private func recalculateStats() {
+        var newClickPower: Double = 1.0
+        var newPassiveIncome: Double = 0.0
+        
+        for upgrade in upgrades {
+            switch upgrade.type {
+            case .clickPower:
+                newClickPower += upgrade.totalEffect
+            case .passiveIncome:
+                newPassiveIncome += upgrade.totalEffect
+            }
+        }
+        
+        self.clickPower = newClickPower
+        self.passiveIncome = newPassiveIncome
+    }
+    
+    // MARK: - Kayıt & Yükleme
+    func saveGame() {
+        let saveData = GameSaveData(
+            gold: gold,
+            totalGoldMined: totalGoldMined,
+            totalClicks: totalClicks,
+            prestigeMultiplier: prestigeMultiplier,
+            prestigeLevel: prestigeLevel,
+            depth: depth,
+            gems: gems,
+            lastSavedTimestamp: Date().timeIntervalSince1970,
+            upgrades: upgrades,
+            specialBuffs: specialBuffs,
+            quests: quests,
+            artifacts: artifacts,
+            currentWorldId: currentWorldId,
+            comboProgress: comboProgress
+        )
+        
+        if let encoded = try? JSONEncoder().encode(saveData) {
+            UserDefaults.standard.set(encoded, forKey: saveKey)
+        }
+    }
+    
+    func loadGame() {
+        guard let data = UserDefaults.standard.data(forKey: saveKey),
+              let decoded = try? JSONDecoder().decode(GameSaveData.self, from: data) else {
+            return
+        }
+        
+        self.gold = decoded.gold
+        self.totalGoldMined = decoded.totalGoldMined
+        self.totalClicks = decoded.totalClicks
+        self.prestigeLevel = decoded.prestigeLevel
+        self.prestigeMultiplier = max(decoded.prestigeMultiplier, 1.0)
+        self.depth = decoded.depth
+        self.gems = decoded.gems
+        if let worldId = decoded.currentWorldId {
+            self.currentWorldId = worldId
+        }
+        if let savedCombo = decoded.comboProgress {
+            self.comboProgress = min(max(savedCombo, 0.0), 1.0)
+        }
+        
+        for savedUpgrade in decoded.upgrades {
+            if let index = self.upgrades.firstIndex(where: { $0.id == savedUpgrade.id }) {
+                self.upgrades[index].level = savedUpgrade.level
+            }
+        }
+        for savedBuff in decoded.specialBuffs {
+            if let index = self.specialBuffs.firstIndex(where: { $0.id == savedBuff.id }) {
+                self.specialBuffs[index].isPurchased = savedBuff.isPurchased
+            }
+        }
+        for savedQuest in decoded.quests {
+            if let index = self.quests.firstIndex(where: { $0.id == savedQuest.id }) {
+                self.quests[index].isClaimed = savedQuest.isClaimed
+            }
+        }
+        if let savedArtifacts = decoded.artifacts {
+            for savedArt in savedArtifacts {
+                if let index = self.artifacts.firstIndex(where: { $0.name == savedArt.name }) {
+                    self.artifacts[index].isUnlocked = savedArt.isUnlocked
+                }
+            }
+        }
+    }
+    
+    func checkOfflineProgress() {
+        guard let data = UserDefaults.standard.data(forKey: saveKey),
+              let decoded = try? JSONDecoder().decode(GameSaveData.self, from: data) else {
+            return
+        }
+        
+        let now = Date().timeIntervalSince1970
+        let elapsedSeconds = now - decoded.lastSavedTimestamp
+        
+        if elapsedSeconds >= 10 && self.effectivePassiveIncome > 0 {
+            let cappedSeconds = min(elapsedSeconds, 86400)
+            let earned = cappedSeconds * self.effectivePassiveIncome
+            
+            if earned > 0 {
+                self.offlineReward = OfflineReward(elapsedSeconds: cappedSeconds, amount: earned)
+                self.showOfflineModal = true
+            }
+        }
+    }
+    
+    func claimOfflineReward() {
+        guard let reward = offlineReward else { return }
+        gold += reward.amount
+        totalGoldMined += reward.amount
+        offlineReward = nil
+        showOfflineModal = false
+        saveGame()
+        
+        AudioManager.shared.playUpgradeSound()
+    }
+    
+    // MARK: - Tüm İlerlemeyi Sıfırla (Settings Menu)
+    func resetAllData() {
+        UserDefaults.standard.removeObject(forKey: saveKey)
+        
+        gold = 0
+        depth = 0
+        totalGoldMined = 0
+        totalClicks = 0
+        prestigeLevel = 0
+        prestigeMultiplier = 1.0
+        gems = 0
+        currentWorldId = "world_eldorado"
+        comboProgress = 0.0
+        isFrenzyActive = false
+        
+        for i in 0..<upgrades.count {
+            upgrades[i].level = 0
+        }
+        for i in 0..<specialBuffs.count {
+            specialBuffs[i].isPurchased = false
+        }
+        for i in 0..<quests.count {
+            quests[i].isClaimed = false
+        }
+        for i in 0..<artifacts.count {
+            artifacts[i].isUnlocked = false
+        }
+        
+        recalculateStats()
+        AudioManager.shared.triggerNotification(type: .warning)
+        showBanner("🔄 Tüm veriler sıfırlandı!")
+    }
+}

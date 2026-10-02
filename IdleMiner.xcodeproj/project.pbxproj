@@ -1,0 +1,369 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000010000000000000001 /* IdleMinerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000001 /* IdleMinerApp.swift */; };
+		A10000020000000000000001 /* Upgrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000020000000000000001 /* Upgrade.swift */; };
+		A10000030000000000000001 /* NumberFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000030000000000000001 /* NumberFormatter.swift */; };
+		A10000040000000000000001 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000040000000000000001 /* GameViewModel.swift */; };
+		A10000050000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000050000000000000001 /* ContentView.swift */; };
+		A10000060000000000000001 /* UpgradeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000060000000000000001 /* UpgradeCardView.swift */; };
+		A10000080000000000000001 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000090000000000000001 /* AudioManager.swift */; };
+		A10000100000000000000001 /* OreLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000100000000000000001 /* OreLayer.swift */; };
+		A10000110000000000000001 /* SpecialBuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000110000000000000001 /* SpecialBuff.swift */; };
+		A10000120000000000000001 /* GameQuest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000120000000000000001 /* GameQuest.swift */; };
+		A10000130000000000000001 /* BuffCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000130000000000000001 /* BuffCardView.swift */; };
+		A10000140000000000000001 /* QuestCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000140000000000000001 /* QuestCardView.swift */; };
+		A10000150000000000000001 /* ParticleSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000150000000000000001 /* ParticleSystem.swift */; };
+		A10000160000000000000001 /* LiveMineSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000160000000000000001 /* LiveMineSceneView.swift */; };
+		A10000170000000000000001 /* Artifact.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000170000000000000001 /* Artifact.swift */; };
+		A10000180000000000000001 /* MuseumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000001 /* MuseumView.swift */; };
+		A10000190000000000000001 /* ArtifactDiscoveryModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000001 /* ArtifactDiscoveryModal.swift */; };
+		A10000200000000000000001 /* MineWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000001 /* MineWorld.swift */; };
+		A10000210000000000000001 /* MinerChatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000210000000000000001 /* MinerChatter.swift */; };
+		A10000220000000000000001 /* WorldMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000220000000000000001 /* WorldMapView.swift */; };
+		A10000230000000000000001 /* RadioChatterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000230000000000000001 /* RadioChatterView.swift */; };
+		A10000240000000000000001 /* SettingsModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000240000000000000001 /* SettingsModalView.swift */; };
+		A10000250000000000000001 /* WanderingMerchant.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000250000000000000001 /* WanderingMerchant.swift */; };
+		A10000260000000000000001 /* MerchantModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000260000000000000001 /* MerchantModalView.swift */; };
+		A10000070000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000070000000000000001 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* IdleMiner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IdleMiner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000010000000000000001 /* IdleMinerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleMinerApp.swift; sourceTree = "<group>"; };
+		A20000020000000000000001 /* Upgrade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Upgrade.swift; sourceTree = "<group>"; };
+		A20000030000000000000001 /* NumberFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberFormatter.swift; sourceTree = "<group>"; };
+		A20000040000000000000001 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		A20000050000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A20000060000000000000001 /* UpgradeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradeCardView.swift; sourceTree = "<group>"; };
+		A20000070000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000080000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000090000000000000001 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		A20000100000000000000001 /* OreLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OreLayer.swift; sourceTree = "<group>"; };
+		A20000110000000000000001 /* SpecialBuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecialBuff.swift; sourceTree = "<group>"; };
+		A20000120000000000000001 /* GameQuest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameQuest.swift; sourceTree = "<group>"; };
+		A20000130000000000000001 /* BuffCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuffCardView.swift; sourceTree = "<group>"; };
+		A20000140000000000000001 /* QuestCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestCardView.swift; sourceTree = "<group>"; };
+		A20000150000000000000001 /* ParticleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleSystem.swift; sourceTree = "<group>"; };
+		A20000160000000000000001 /* LiveMineSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveMineSceneView.swift; sourceTree = "<group>"; };
+		A20000170000000000000001 /* Artifact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artifact.swift; sourceTree = "<group>"; };
+		A20000180000000000000001 /* MuseumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuseumView.swift; sourceTree = "<group>"; };
+		A20000190000000000000001 /* ArtifactDiscoveryModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDiscoveryModal.swift; sourceTree = "<group>"; };
+		A20000200000000000000001 /* MineWorld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MineWorld.swift; sourceTree = "<group>"; };
+		A20000210000000000000001 /* MinerChatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinerChatter.swift; sourceTree = "<group>"; };
+		A20000220000000000000001 /* WorldMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldMapView.swift; sourceTree = "<group>"; };
+		A20000230000000000000001 /* RadioChatterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioChatterView.swift; sourceTree = "<group>"; };
+		A20000240000000000000001 /* SettingsModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModalView.swift; sourceTree = "<group>"; };
+		A20000250000000000000001 /* WanderingMerchant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WanderingMerchant.swift; sourceTree = "<group>"; };
+		A20000260000000000000001 /* MerchantModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantModalView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000010000000000000001 /* IdleMiner */,
+				A40000060000000000000001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000010000000000000001 /* IdleMiner */ = {
+			isa = PBXGroup;
+			children = (
+				A20000010000000000000001 /* IdleMinerApp.swift */,
+				A40000020000000000000001 /* Models */,
+				A40000030000000000000001 /* Utils */,
+				A40000040000000000000001 /* ViewModels */,
+				A40000050000000000000001 /* Views */,
+				A20000070000000000000001 /* Assets.xcassets */,
+				A20000080000000000000001 /* Info.plist */,
+			);
+			path = IdleMiner;
+			sourceTree = "<group>";
+		};
+		A40000020000000000000001 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A20000020000000000000001 /* Upgrade.swift */,
+				A20000100000000000000001 /* OreLayer.swift */,
+				A20000110000000000000001 /* SpecialBuff.swift */,
+				A20000120000000000000001 /* GameQuest.swift */,
+				A20000170000000000000001 /* Artifact.swift */,
+				A20000200000000000000001 /* MineWorld.swift */,
+				A20000210000000000000001 /* MinerChatter.swift */,
+				A20000250000000000000001 /* WanderingMerchant.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A40000030000000000000001 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A20000030000000000000001 /* NumberFormatter.swift */,
+				A20000090000000000000001 /* AudioManager.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		A40000040000000000000001 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A20000040000000000000001 /* GameViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A40000050000000000000001 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A20000050000000000000001 /* ContentView.swift */,
+				A20000060000000000000001 /* UpgradeCardView.swift */,
+				A20000130000000000000001 /* BuffCardView.swift */,
+				A20000140000000000000001 /* QuestCardView.swift */,
+				A20000150000000000000001 /* ParticleSystem.swift */,
+				A20000160000000000000001 /* LiveMineSceneView.swift */,
+				A20000180000000000000001 /* MuseumView.swift */,
+				A20000190000000000000001 /* ArtifactDiscoveryModal.swift */,
+				A20000220000000000000001 /* WorldMapView.swift */,
+				A20000230000000000000001 /* RadioChatterView.swift */,
+				A20000240000000000000001 /* SettingsModalView.swift */,
+				A20000260000000000000001 /* MerchantModalView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A40000060000000000000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* IdleMiner.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000010000000000000001 /* IdleMiner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000020000000000000001 /* Build configuration list for PBXNativeTarget "IdleMiner" */;
+			buildPhases = (
+				A60000010000000000000001 /* Sources */,
+				A30000010000000000000001 /* Frameworks */,
+				A70000010000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IdleMiner;
+			productName = IdleMiner;
+			productReference = A20000000000000000000001 /* IdleMiner.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A50000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = A80000010000000000000001 /* Build configuration list for PBXProject "IdleMiner" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = tr;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				tr,
+				Base,
+			);
+			mainGroup = A40000000000000000000001;
+			productRefGroup = A40000060000000000000001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000010000000000000001 /* IdleMiner */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A70000010000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000070000000000000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A60000010000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000010000000000000001 /* IdleMinerApp.swift in Sources */,
+				A10000020000000000000001 /* Upgrade.swift in Sources */,
+				A10000030000000000000001 /* NumberFormatter.swift in Sources */,
+				A10000040000000000000001 /* GameViewModel.swift in Sources */,
+				A10000050000000000000001 /* ContentView.swift in Sources */,
+				A10000060000000000000001 /* UpgradeCardView.swift in Sources */,
+				A10000080000000000000001 /* AudioManager.swift in Sources */,
+				A10000100000000000000001 /* OreLayer.swift in Sources */,
+				A10000110000000000000001 /* SpecialBuff.swift in Sources */,
+				A10000120000000000000001 /* GameQuest.swift in Sources */,
+				A10000130000000000000001 /* BuffCardView.swift in Sources */,
+				A10000140000000000000001 /* QuestCardView.swift in Sources */,
+				A10000150000000000000001 /* ParticleSystem.swift in Sources */,
+				A10000160000000000000001 /* LiveMineSceneView.swift in Sources */,
+				A10000170000000000000001 /* Artifact.swift in Sources */,
+				A10000180000000000000001 /* MuseumView.swift in Sources */,
+				A10000190000000000000001 /* ArtifactDiscoveryModal.swift in Sources */,
+				A10000200000000000000001 /* MineWorld.swift in Sources */,
+				A10000210000000000000001 /* MinerChatter.swift in Sources */,
+				A10000220000000000000001 /* WorldMapView.swift in Sources */,
+				A10000230000000000000001 /* RadioChatterView.swift in Sources */,
+				A10000240000000000000001 /* SettingsModalView.swift in Sources */,
+				A10000250000000000000001 /* WanderingMerchant.swift in Sources */,
+				A10000260000000000000001 /* MerchantModalView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A90000010000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A90000020000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A90000030000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J7436DNY3K;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IdleMiner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ulas.idleminer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A90000040000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J7436DNY3K;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IdleMiner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ulas.idleminer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A80000010000000000000001 /* Build configuration list for PBXProject "IdleMiner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000010000000000000001 /* Debug */,
+				A90000020000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000020000000000000001 /* Build configuration list for PBXNativeTarget "IdleMiner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000030000000000000001 /* Debug */,
+				A90000040000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A50000000000000000000001 /* Project object */;
+}
