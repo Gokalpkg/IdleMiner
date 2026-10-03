@@ -380,36 +380,42 @@ final class GameViewModel: ObservableObject {
         saveGame()
     }
     
-    // MARK: - Eser Düşme (Drop) Mantığı
+    // MARK: - Eser ve Parça Düşme (Drop) Mantığı
     /// Oyuncu madene tıkladığında veya saniyelik pasif kazanç sağlandığında arka planda çalışır.
-    /// Henüz açılmamış eserler arasından rastgele zar atılır.
+    /// Henüz tamamlanmamış eserler arasından rastgele zar atılır.
     func checkArtifactDrop(isPassive: Bool = false) {
         // Zaten ekranda bekleyen keşif modalı varsa yeni bir tane tetikleme
         guard newlyDiscoveredArtifact == nil else { return }
         
-        let lockedIndices = artifacts.indices.filter { !artifacts[$0].isUnlocked }
-        guard !lockedIndices.isEmpty else { return }
+        let incompleteIndices = artifacts.indices.filter { !artifacts[$0].isUnlocked }
+        guard !incompleteIndices.isEmpty else { return }
         
-        // Eserlerden gelen ek drop oranı bonusu (Örn: +%5 -> rareDropRateBoost)
+        // Eserlerden gelen ek drop oranı bonusu (Örn: +%2 -> rareDropRateBoost)
         let museum = calculateMuseumMultipliers()
         let dropRateMultiplier = 1.0 + museum.dropRateBoost
         
         // Pasif kazanç kontrolünde tıklamaya göre daha seyrek şans vermek için katsayı
         let rateDampener = isPassive ? 0.35 : 1.0
         
-        // Kilitli eserler arasından zar atımı (Önce en nadir olanlardan başlar)
-        for index in lockedIndices.shuffled() {
+        // Tamamlanmamış eserler arasından zar atımı (Önce en nadir olanlardan başlar)
+        for index in incompleteIndices.shuffled() {
             let artifact = artifacts[index]
             let effectiveChance = artifact.rarity.dropChance * dropRateMultiplier * rateDampener
             let roll = Double.random(in: 0.0...1.0)
             
             if roll < effectiveChance {
-                // Eser Düştü!
-                artifacts[index].isUnlocked = true
-                newlyDiscoveredArtifact = artifacts[index]
+                // Parça Düştü!
+                artifacts[index].collectedFragments += 1
+                if artifacts[index].collectedFragments >= artifacts[index].totalFragments {
+                    artifacts[index].isUnlocked = true
+                    AudioManager.shared.playCelebrationSound()
+                    AudioManager.shared.triggerNotification(type: .success)
+                } else {
+                    AudioManager.shared.playUpgradeSound()
+                    AudioManager.shared.triggerNotification(type: .warning)
+                }
                 
-                AudioManager.shared.playCelebrationSound()
-                AudioManager.shared.triggerNotification(type: .success)
+                newlyDiscoveredArtifact = artifacts[index]
                 saveGame()
                 break
             }
@@ -492,11 +498,14 @@ final class GameViewModel: ObservableObject {
     func claimNewlyDiscoveredArtifact() {
         guard let artifact = newlyDiscoveredArtifact else { return }
         newlyDiscoveredArtifact = nil
-        showBanner("🏛️ \(artifact.name) Müzeye Eklendi!")
         
-        // Eser bulma / Prestij: UINotificationFeedbackGenerator().notificationOccurred(.success)
-        AudioManager.shared.triggerNotification(type: .success)
-        AudioManager.shared.playCelebrationSound()
+        if artifact.isUnlocked {
+            AudioManager.shared.triggerNotification(type: .success)
+            AudioManager.shared.playCelebrationSound()
+        } else {
+            AudioManager.shared.triggerImpact(style: .medium)
+            AudioManager.shared.playUpgradeSound()
+        }
         saveGame()
     }
     
@@ -736,7 +745,10 @@ final class GameViewModel: ObservableObject {
             AudioManager.shared.playMerchantPurchaseSound()
             AudioManager.shared.triggerImpact(style: .heavy)
             if let lockedIndex = artifacts.firstIndex(where: { !$0.isUnlocked }) {
-                artifacts[lockedIndex].isUnlocked = true
+                artifacts[lockedIndex].collectedFragments += 1
+                if artifacts[lockedIndex].collectedFragments >= artifacts[lockedIndex].totalFragments {
+                    artifacts[lockedIndex].isUnlocked = true
+                }
                 newlyDiscoveredArtifact = artifacts[lockedIndex]
             } else {
                 gems += 20
@@ -968,6 +980,8 @@ final class GameViewModel: ObservableObject {
         if let savedArtifacts = decoded.artifacts {
             for savedArt in savedArtifacts {
                 if let index = self.artifacts.firstIndex(where: { $0.name == savedArt.name }) {
+                    self.artifacts[index].totalFragments = savedArt.totalFragments
+                    self.artifacts[index].collectedFragments = savedArt.collectedFragments
                     self.artifacts[index].isUnlocked = savedArt.isUnlocked
                 }
             }
@@ -1031,6 +1045,7 @@ final class GameViewModel: ObservableObject {
         }
         for i in 0..<artifacts.count {
             artifacts[i].isUnlocked = false
+            artifacts[i].collectedFragments = 0
         }
         
         self.shafts = MineShaft.defaultShafts

@@ -76,11 +76,15 @@ struct ArtifactDiscoveryModal: View {
                 // MARK: - Nadirlik Rozeti ve İsim
                 VStack(spacing: 6) {
                     HStack(spacing: 6) {
-                        Image(systemName: "sparkle")
+                        Image(systemName: artifact.isUnlocked ? "sparkle" : "puzzlepiece.extension.fill")
                             .font(.system(size: 11, weight: .black))
-                        Text("\(artifact.rarity.title.uppercased()) ESER BULUNDU!")
-                            .font(.system(size: 12, weight: .black))
-                            .tracking(2)
+                        Text(
+                            artifact.isUnlocked ?
+                            "\(artifact.rarity.title.uppercased()) ESER BİRLEŞTİRİLDİ!" :
+                            "YENİ PARÇA BULUNDU! (\(artifact.collectedFragments)/\(artifact.totalFragments))"
+                        )
+                        .font(.system(size: 12, weight: .black))
+                        .tracking(1.5)
                     }
                     .foregroundColor(artifact.rarity.color)
                     .padding(.horizontal, 12)
@@ -92,6 +96,23 @@ struct ArtifactDiscoveryModal: View {
                         .font(.system(size: 24, weight: .heavy))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
+                    
+                    // Parça İlerleme Çubukları
+                    if artifact.totalFragments > 1 {
+                        HStack(spacing: 6) {
+                            ForEach(0..<artifact.totalFragments, id: \.self) { idx in
+                                Capsule()
+                                    .fill(
+                                        idx < artifact.collectedFragments ?
+                                        (artifact.isUnlocked ? Color.green : artifact.rarity.color) :
+                                        Color.white.opacity(0.15)
+                                    )
+                                    .frame(width: 32, height: 5)
+                                    .shadow(color: (idx < artifact.collectedFragments ? artifact.rarity.color.opacity(0.6) : Color.clear), radius: 3)
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
                 }
                 
                 // MARK: - Lore Hikayesi ve Pasif Özellik
@@ -105,22 +126,47 @@ struct ArtifactDiscoveryModal: View {
                     
                     Divider().background(Color.white.opacity(0.12))
                     
-                    HStack(spacing: 8) {
-                        Image(systemName: artifact.bonusType.badgeIcon)
-                            .font(.system(size: 16, weight: .black))
-                            .foregroundColor(.green)
-                        
-                        Text(artifact.bonusType.description)
-                            .font(.system(size: 15, weight: .heavy))
-                            .foregroundColor(.green)
+                    if artifact.isUnlocked {
+                        HStack(spacing: 8) {
+                            Image(systemName: artifact.bonusType.badgeIcon)
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(.green)
+                            
+                            Text("\(artifact.bonusType.description) (Aktif!)")
+                                .font(.system(size: 14, weight: .heavy))
+                                .foregroundColor(.green)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Color.green.opacity(0.15))
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule().stroke(Color.green.opacity(0.3), lineWidth: 1)
+                        )
+                    } else {
+                        VStack(spacing: 4) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.gray)
+                                
+                                Text("\(artifact.bonusType.description) (Kilitli)")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Text("Özelliğin aktif olması için \(artifact.totalFragments - artifact.collectedFragments) parça daha gerekiyor.")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(artifact.rarity.color.opacity(0.9))
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.06))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(Color.green.opacity(0.15))
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule().stroke(Color.green.opacity(0.3), lineWidth: 1)
-                    )
                 }
                 .padding(16)
                 .background(Color.white.opacity(0.06))
@@ -132,9 +178,9 @@ struct ArtifactDiscoveryModal: View {
                     onClaim()
                 }) {
                     HStack(spacing: 8) {
-                        Image(systemName: "building.columns.fill")
+                        Image(systemName: artifact.isUnlocked ? "building.columns.fill" : "puzzlepiece.fill")
                             .font(.system(size: 16))
-                        Text("Müzeye Ekle 🏛️")
+                        Text(artifact.isUnlocked ? "Müzeye Ekle 🏛️" : "Parçayı Müzeye Ekle 🧩")
                             .font(.system(size: 16, weight: .black))
                     }
                     .foregroundColor(.black)

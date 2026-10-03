@@ -223,24 +223,45 @@ struct ArtifactPedestalCard: View {
                             )
                         )
                         .shadow(color: artifact.rarity.glowColor, radius: 12, x: 0, y: 2)
-                } else {
-                    // KİLİTLİ ESER: TAMAMEN SİYAH SİLÜET MEKANİĞİ
-                    // İkon dış hatları belli olacak fakat içi tamamen karartılmış template maskesi
+                } else if artifact.collectedFragments > 0 {
+                    // PARÇALI ESER (Kısmen Toplanmış: Örn 1/3 veya 2/3)
                     ZStack {
-                        // Arkadaki hafif gizemli silüet konturu
+                        Image(systemName: artifact.iconName)
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundColor(artifact.rarity.color.opacity(0.35))
+                        
+                        VStack {
+                            Spacer()
+                            HStack(spacing: 3) {
+                                Image(systemName: "puzzlepiece.extension.fill")
+                                    .font(.system(size: 10, weight: .black))
+                                Text("\(artifact.collectedFragments)/\(artifact.totalFragments)")
+                                    .font(.system(size: 10, weight: .black, design: .rounded))
+                            }
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(artifact.rarity.color)
+                            .clipShape(Capsule())
+                            .shadow(color: artifact.rarity.glowColor, radius: 4)
+                        }
+                        .padding(.bottom, 6)
+                    }
+                } else {
+                    // KİLİTLİ ESER (0 Parça): TAMAMEN SİYAH SİLÜET
+                    ZStack {
                         Image(systemName: artifact.iconName)
                             .renderingMode(.template)
                             .font(.system(size: 40, weight: .bold))
                             .foregroundColor(Color.black.opacity(0.92))
                             .shadow(color: artifact.rarity.color.opacity(0.25), radius: 5)
                         
-                        // Nadirlik renginde ortalanmış kilit ikonu
                         VStack {
                             Spacer()
                             HStack {
                                 Spacer()
                                 Image(systemName: "lock.fill")
-                                    .font(.system(size: 13, weight: .black))
+                                    .font(.system(size: 12, weight: .black))
                                     .foregroundColor(artifact.rarity.color)
                                     .padding(6)
                                     .background(Color.black.opacity(0.8))
@@ -258,6 +279,20 @@ struct ArtifactPedestalCard: View {
             }
             .frame(height: 90)
             
+            // MARK: - Parça İlerleme Çubuğu (Segmentli)
+            HStack(spacing: 3) {
+                ForEach(0..<artifact.totalFragments, id: \.self) { idx in
+                    Capsule()
+                        .fill(
+                            idx < artifact.collectedFragments ?
+                            (artifact.isUnlocked ? Color.green : artifact.rarity.color) :
+                            Color.white.opacity(0.12)
+                        )
+                        .frame(height: 3.5)
+                }
+            }
+            .padding(.horizontal, 8)
+            
             // MARK: - İsim ve Nadirlik Rozeti
             VStack(spacing: 4) {
                 // Nadirlik Başlığı (Her iki durumda da görünür)
@@ -268,34 +303,39 @@ struct ArtifactPedestalCard: View {
                     Text(artifact.rarity.title.uppercased())
                         .font(.system(size: 9, weight: .black))
                         .foregroundColor(artifact.rarity.color)
+                    
+                    if artifact.totalFragments > 1 {
+                        Text("• \(artifact.collectedFragments)/\(artifact.totalFragments)")
+                            .font(.system(size: 9, weight: .heavy, design: .monospaced))
+                            .foregroundColor(artifact.isUnlocked ? .green : (artifact.collectedFragments > 0 ? artifact.rarity.color : .gray))
+                    }
                 }
                 
-                // İsim: Açılmışsa tam isim, kilitliyse "???"
-                Text(artifact.isUnlocked ? artifact.name : "???")
+                // İsim: Açılmış veya kısmen bulunmuşsa isim görünür, hiç bulunmamışsa "???"
+                Text((artifact.isUnlocked || artifact.collectedFragments > 0) ? artifact.name : "???")
                     .font(.system(size: 13, weight: .black))
-                    .foregroundColor(artifact.isUnlocked ? .white : .gray.opacity(0.8))
+                    .foregroundColor(artifact.isUnlocked ? .white : (artifact.collectedFragments > 0 ? .white.opacity(0.85) : .gray.opacity(0.8)))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .frame(height: 32)
                 
-                // Pasif Bonus (KİLİTLİ OLSA BİLE OKUNABİLİR - OYUNCUYU HEYECANLANDIRIR)
+                // Pasif Bonus (Açılınca aktif, parçalıyken kilitli)
                 HStack(spacing: 4) {
-                    Image(systemName: artifact.bonusType.badgeIcon)
-                        .font(.system(size: 9))
-                    Text(artifact.bonusType.description)
-                        .font(.system(size: 10, weight: .bold))
+                    Image(systemName: artifact.isUnlocked ? artifact.bonusType.badgeIcon : "lock.fill")
+                        .font(.system(size: 8))
+                    Text(artifact.isUnlocked ? artifact.bonusType.description : "\(artifact.bonusType.description) (Kilitli)")
+                        .font(.system(size: 9.5, weight: .bold))
                 }
-                .foregroundColor(artifact.isUnlocked ? .green : artifact.rarity.color)
+                .foregroundColor(artifact.isUnlocked ? .green : .gray)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(
-                    (artifact.isUnlocked ? Color.green : artifact.rarity.color)
-                        .opacity(0.12)
+                    (artifact.isUnlocked ? Color.green.opacity(0.15) : Color.white.opacity(0.06))
                 )
                 .clipShape(Capsule())
                 .overlay(
                     Capsule()
-                        .stroke((artifact.isUnlocked ? Color.green : artifact.rarity.color).opacity(0.25), lineWidth: 0.8)
+                        .stroke((artifact.isUnlocked ? Color.green.opacity(0.3) : Color.white.opacity(0.1)), lineWidth: 0.8)
                 )
             }
             
@@ -306,6 +346,12 @@ struct ArtifactPedestalCard: View {
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
+                    .padding(.horizontal, 4)
+            } else if artifact.collectedFragments > 0 {
+                Text("Tamamlamak için \(artifact.totalFragments - artifact.collectedFragments) parça daha gerekiyor.")
+                    .font(.system(size: 8.5, weight: .medium))
+                    .foregroundColor(artifact.rarity.color.opacity(0.8))
+                    .multilineTextAlignment(.center)
                     .padding(.horizontal, 4)
             }
         }

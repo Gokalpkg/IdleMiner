@@ -16,12 +16,22 @@ enum Rarity: String, Codable, CaseIterable {
         }
     }
     
+    // Dengeli düşme olasılıkları (Efsaneviler çok daha nadir)
     var dropChance: Double {
         switch self {
-        case .common: return 0.05
-        case .rare: return 0.015
-        case .epic: return 0.004
-        case .legendary: return 0.0005
+        case .common: return 0.012     // %1.2
+        case .rare: return 0.004       // %0.4
+        case .epic: return 0.0012      // %0.12
+        case .legendary: return 0.0003 // %0.03
+        }
+    }
+    
+    var defaultFragments: Int {
+        switch self {
+        case .legendary: return 3 // Efsaneviler 3 parçadan oluşur
+        case .epic: return 2      // Epikler 2 parça
+        case .rare: return 2      // Nadirler 2 parça
+        case .common: return 1    // Sıradanlar 1 parça
         }
     }
     
@@ -53,11 +63,11 @@ enum BonusType: Codable, Equatable {
     var description: String {
         switch self {
         case .passiveIncomeBoost(let value):
-            return "+%\(Int(value * 100)) Pasif Maden Geliri"
+            return "+%\(Int(round(value * 100))) Pasif Maden Geliri"
         case .clickPowerBoost(let value):
-            return "+%\(Int(value * 100)) Tıklama Kazancı"
+            return "+%\(Int(round(value * 100))) Tıklama Kazancı"
         case .rareDropRateBoost(let value):
-            return "+%\(Int(value * 100)) Eser Bulma Şansı"
+            return "+%\(Int(round(value * 100))) Eser Bulma Şansı"
         }
     }
     
@@ -78,7 +88,7 @@ struct ArtifactSet: Identifiable, Codable {
     let description: String
     let requiredArtifactNames: [String]
     let setBonusText: String
-    let globalMultiplierBonus: Double // Örn: 0.25 (+%25 Tüm Gezegen Kazancı)
+    let globalMultiplierBonus: Double
     
     static let allSets: [ArtifactSet] = [
         ArtifactSet(
@@ -87,8 +97,8 @@ struct ArtifactSet: Identifiable, Codable {
             iconName: "tortoise.fill",
             description: "Milyonlarca yıllık tarih öncesi fosiller bir arada.",
             requiredArtifactNames: ["T-Rex Kafatası", "Fosil Diş"],
-            setBonusText: "+%25 Kalıcı Tüm Gezegen Kazancı 🏆",
-            globalMultiplierBonus: 0.25
+            setBonusText: "+%8 Kalıcı Tüm Gezegen Kazancı 🏆",
+            globalMultiplierBonus: 0.08
         ),
         ArtifactSet(
             id: "set_relics",
@@ -96,8 +106,8 @@ struct ArtifactSet: Identifiable, Codable {
             iconName: "wand.and.rays",
             description: "İlk kaşiflerin ve mitolojik ustaların yadigarları.",
             requiredArtifactNames: ["Antik Madenci Pusulası", "Kararmış Altın Kazma"],
-            setBonusText: "+%30 Tıklama & Pasif Çarpanı 🏆",
-            globalMultiplierBonus: 0.30
+            setBonusText: "+%10 Tıklama & Pasif Çarpanı 🏆",
+            globalMultiplierBonus: 0.10
         ),
         ArtifactSet(
             id: "set_cosmic",
@@ -105,13 +115,13 @@ struct ArtifactSet: Identifiable, Codable {
             iconName: "atom",
             description: "Evrenin derinliklerinden gelen gizemli enerji kaynakları.",
             requiredArtifactNames: ["Parlayan Rün Taşı", "Meteorit Parçası"],
-            setBonusText: "+%50 Kalıcı Maden Geliri & Çılgınlık Gücü 🏆",
-            globalMultiplierBonus: 0.50
+            setBonusText: "+%12 Kalıcı Maden Geliri 🏆",
+            globalMultiplierBonus: 0.12
         )
     ]
 }
 
-// MARK: - 4. Artifact (Eser Modeli)
+// MARK: - 4. Artifact (Eser Modeli - Parçalı Sistem)
 struct Artifact: Identifiable, Codable {
     var id: UUID = UUID()
     let name: String
@@ -121,9 +131,68 @@ struct Artifact: Identifiable, Codable {
     let bonusType: BonusType
     let loreDescription: String
     var setId: String? = nil
+    var totalFragments: Int
+    var collectedFragments: Int
     
     var perkText: String {
         bonusType.description
+    }
+    
+    var isComplete: Bool {
+        collectedFragments >= totalFragments
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, iconName, rarity, isUnlocked, bonusType, loreDescription, setId, totalFragments, collectedFragments
+    }
+    
+    init(
+        id: UUID = UUID(),
+        name: String,
+        iconName: String,
+        rarity: Rarity,
+        isUnlocked: Bool = false,
+        bonusType: BonusType,
+        loreDescription: String,
+        setId: String? = nil,
+        totalFragments: Int? = nil,
+        collectedFragments: Int = 0
+    ) {
+        self.id = id
+        self.name = name
+        self.iconName = iconName
+        self.rarity = rarity
+        self.bonusType = bonusType
+        self.loreDescription = loreDescription
+        self.setId = setId
+        
+        let required = totalFragments ?? rarity.defaultFragments
+        self.totalFragments = required
+        self.collectedFragments = isUnlocked ? required : collectedFragments
+        self.isUnlocked = self.collectedFragments >= self.totalFragments
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.name = try container.decode(String.self, forKey: .name)
+        self.iconName = try container.decode(String.self, forKey: .iconName)
+        self.rarity = try container.decode(Rarity.self, forKey: .rarity)
+        let unlocked = try container.decodeIfPresent(Bool.self, forKey: .isUnlocked) ?? false
+        self.bonusType = try container.decode(BonusType.self, forKey: .bonusType)
+        self.loreDescription = try container.decode(String.self, forKey: .loreDescription)
+        self.setId = try container.decodeIfPresent(String.self, forKey: .setId)
+        
+        let defaultFrag = self.rarity.defaultFragments
+        self.totalFragments = try container.decodeIfPresent(Int.self, forKey: .totalFragments) ?? defaultFrag
+        
+        if let savedCollected = try container.decodeIfPresent(Int.self, forKey: .collectedFragments) {
+            self.collectedFragments = savedCollected
+            self.isUnlocked = self.collectedFragments >= self.totalFragments
+        } else {
+            self.collectedFragments = unlocked ? self.totalFragments : 0
+            self.isUnlocked = unlocked
+        }
     }
     
     static let defaultArtifacts: [Artifact] = [
@@ -132,54 +201,60 @@ struct Artifact: Identifiable, Codable {
             iconName: "safari.fill",
             rarity: .common,
             isUnlocked: false,
-            bonusType: .passiveIncomeBoost(0.10),
+            bonusType: .passiveIncomeBoost(0.03), // +%3 Pasif (Dengeli)
             loreDescription: "Eski çağ madencilerinin karanlık dehlizlerde yön ve damar tayini için pirinçten dövdüğü pusula.",
-            setId: "set_relics"
+            setId: "set_relics",
+            totalFragments: 1
         ),
         Artifact(
             name: "Fosil Diş",
             iconName: "mouth.fill",
             rarity: .common,
             isUnlocked: false,
-            bonusType: .clickPowerBoost(0.15),
+            bonusType: .clickPowerBoost(0.04), // +%4 Tıklama (Dengeli)
             loreDescription: "Milyonlarca yıllık sert tortul kayalarda sıkışıp taşlaşmış sivri bir yırtıcı dişi.",
-            setId: "set_dino"
+            setId: "set_dino",
+            totalFragments: 1
         ),
         Artifact(
             name: "T-Rex Kafatası",
             iconName: "tortoise.fill",
             rarity: .rare,
             isUnlocked: false,
-            bonusType: .rareDropRateBoost(0.05),
+            bonusType: .rareDropRateBoost(0.02), // +%2 Eser Bulma Şansı
             loreDescription: "Kömür yataklarının alt katmanlarında neredeyse hiç hasar almadan korunmuş devasa kemik kalıntısı.",
-            setId: "set_dino"
+            setId: "set_dino",
+            totalFragments: 2 // 2 Parça
         ),
         Artifact(
             name: "Parlayan Rün Taşı",
             iconName: "sparkle",
             rarity: .rare,
             isUnlocked: false,
-            bonusType: .passiveIncomeBoost(0.25),
+            bonusType: .passiveIncomeBoost(0.06), // +%6 Pasif (Dengeli)
             loreDescription: "Üzerine işlenen kadim simyacı sembolleri geceleri mor bir ışıltı yayarak madeni aydınlatır.",
-            setId: "set_cosmic"
+            setId: "set_cosmic",
+            totalFragments: 2 // 2 Parça
         ),
         Artifact(
             name: "Kararmış Altın Kazma",
             iconName: "wand.and.rays",
             rarity: .epic,
             isUnlocked: false,
-            bonusType: .clickPowerBoost(0.40),
+            bonusType: .clickPowerBoost(0.10), // +%10 Tıklama (Dengeli)
             loreDescription: "Zamanla yüzeyi karararak sertleşmiş, vurduğu her taştan saf cevher çıkaran mitolojik bir kazma ucu.",
-            setId: "set_relics"
+            setId: "set_relics",
+            totalFragments: 2 // 2 Parça
         ),
         Artifact(
             name: "Meteorit Parçası",
             iconName: "atom",
             rarity: .legendary,
             isUnlocked: false,
-            bonusType: .passiveIncomeBoost(0.60),
+            bonusType: .passiveIncomeBoost(0.15), // +%15 Pasif (Dengeli ve efsanevi)
             loreDescription: "Yeryüzü henüz oluşurken çarpan ve çekirdeğinde dünyada bilinmeyen kozmik güçler barındıran göktaşı.",
-            setId: "set_cosmic"
+            setId: "set_cosmic",
+            totalFragments: 3 // 3 Parça (Üçü toplanınca aktif!)
         )
     ]
 }
