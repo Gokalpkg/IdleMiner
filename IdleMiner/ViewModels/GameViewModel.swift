@@ -101,7 +101,7 @@ final class GameViewModel: ObservableObject {
             name: "Elmas Kazma Ucu",
             icon: "hammer.circle.fill",
             description: "Kalıcı +%40 Tıklama Gücü",
-            gemCost: 20,
+            gemCost: 15,
             isPurchased: false,
             clickMultiplierBonus: 1.4,
             passiveMultiplierBonus: 1.0
@@ -111,7 +111,7 @@ final class GameViewModel: ObservableObject {
             name: "Manyetik Cevher Çekici",
             icon: "bolt.circle.fill",
             description: "Kalıcı +%35 Pasif Maden Geliri",
-            gemCost: 25,
+            gemCost: 18,
             isPurchased: false,
             clickMultiplierBonus: 1.0,
             passiveMultiplierBonus: 1.35
@@ -121,7 +121,7 @@ final class GameViewModel: ObservableObject {
             name: "Titanyum Matkap Çarkı",
             icon: "gearshape.2.fill",
             description: "Kalıcı +%35 Tıklama ve +%35 Pasif Gelir",
-            gemCost: 40,
+            gemCost: 28,
             isPurchased: false,
             clickMultiplierBonus: 1.35,
             passiveMultiplierBonus: 1.35
@@ -131,7 +131,7 @@ final class GameViewModel: ObservableObject {
             name: "Uğurlu Mağara Tılsımı",
             icon: "sparkles",
             description: "Şans sandıklarının geliş sıklığını ve süresini artırır",
-            gemCost: 45,
+            gemCost: 32,
             isPurchased: false,
             clickMultiplierBonus: 1.15,
             passiveMultiplierBonus: 1.15
@@ -141,7 +141,7 @@ final class GameViewModel: ObservableObject {
             name: "Yatırımcı Güveni",
             icon: "crown.fill",
             description: "Tüm kazancı kalıcı olarak %50 artırır",
-            gemCost: 65,
+            gemCost: 45,
             isPurchased: false,
             clickMultiplierBonus: 1.5,
             passiveMultiplierBonus: 1.5
@@ -151,7 +151,7 @@ final class GameViewModel: ObservableObject {
             name: "Karanlık Madde Reaktörü",
             icon: "flame.circle.fill",
             description: "Kalıcı +%60 Tıklama ve Çılgınlık Modu çarpanı",
-            gemCost: 85,
+            gemCost: 60,
             isPurchased: false,
             clickMultiplierBonus: 1.6,
             passiveMultiplierBonus: 1.2
@@ -161,7 +161,7 @@ final class GameViewModel: ObservableObject {
             name: "Antik Yeraltı Rezonansı",
             icon: "sparkles.rectangle.stack.fill",
             description: "Müze ve maden uyumu: Kalıcı 1.8× Tıklama Gücü",
-            gemCost: 110,
+            gemCost: 75,
             isPurchased: false,
             clickMultiplierBonus: 1.8,
             passiveMultiplierBonus: 1.0
@@ -171,30 +171,30 @@ final class GameViewModel: ObservableObject {
             name: "Kozmik Maden Çekirdeği",
             icon: "globe.americas.fill",
             description: "Yeraltının kalbi: Kalıcı 1.75× Pasif Gelir ve Tıklama",
-            gemCost: 150,
+            gemCost: 100,
             isPurchased: false,
             clickMultiplierBonus: 1.75,
             passiveMultiplierBonus: 1.75
         )
     ]
     
-    // MARK: - Görev & Başarım Sistemi (Kıymetli Elmaslar, Dengeli ve Zorlayıcı Hedefler)
+    // MARK: - Görev & Başarım Sistemi (Kıymetli ve Motive Edici Elmas Ödülleri)
     @Published var quests: [GameQuest] = [
-        GameQuest(id: "q_clicks_300", title: "İlk Kazma Vuruşları", description: "300 kez madene tıkla", targetValue: 300, type: .clicks, gemReward: 1),
-        GameQuest(id: "q_depth_250", title: "Bakır Damarına Ulaş", description: "250 metre derinliğe in", targetValue: 250, type: .depth, gemReward: 1),
-        GameQuest(id: "q_gold_100k", title: "Küçük Maden Sahibi", description: "Toplam 100.000 Altın topla", targetValue: 100000, type: .totalGold, gemReward: 2),
-        GameQuest(id: "q_clicks_1000", title: "Yorulmak Bilmeyen Kol", description: "1.000 kez madene tıkla", targetValue: 1000, type: .clicks, gemReward: 2),
-        GameQuest(id: "q_shafts_2", title: "Şaft Genişletme", description: "En az 2 maden şaftının kilidini aç", targetValue: 2, type: .shafts, gemReward: 2),
-        GameQuest(id: "q_depth_750", title: "Demir Çağı", description: "750 metre derinliğe in", targetValue: 750, type: .depth, gemReward: 3),
-        GameQuest(id: "q_gold_1m", title: "Altın Zengini", description: "Toplam 1.000.000 Altın madenciliği yap", targetValue: 1000000, type: .totalGold, gemReward: 3),
-        GameQuest(id: "q_clicks_3000", title: "Usta Madenci", description: "3.000 kez madene tıkla", targetValue: 3000, type: .clicks, gemReward: 3),
-        GameQuest(id: "q_shafts_3", title: "Büyük Şantiye", description: "En az 3 maden şaftının kilidini aç", targetValue: 3, type: .shafts, gemReward: 4),
-        GameQuest(id: "q_artifact_1", title: "İlk Antika Kaşifi", description: "Müzede 1 antik eseri tamamen birleştir", targetValue: 1, type: .artifacts, gemReward: 4),
-        GameQuest(id: "q_depth_2000", title: "Karanlık Çukurlar", description: "2.000 metre derinliğe ulaş", targetValue: 2000, type: .depth, gemReward: 4),
-        GameQuest(id: "q_gold_10m", title: "Maden Baronu", description: "Toplam 10.000.000 Altın madenciliği yap", targetValue: 10000000, type: .totalGold, gemReward: 5),
-        GameQuest(id: "q_prestige_1", title: "Büyük Holding", description: "İlk maden devrini (Rebirth) gerçekleştir", targetValue: 1, type: .prestige, gemReward: 6),
-        GameQuest(id: "q_clicks_10000", title: "Efsanevi Kazıcı", description: "10.000 kez madene tıkla", targetValue: 10000, type: .clicks, gemReward: 6),
-        GameQuest(id: "q_artifacts_3", title: "Büyük Koleksiyoner", description: "Müzede 3 antik eseri tamamen tamamla", targetValue: 3, type: .artifacts, gemReward: 8)
+        GameQuest(id: "q_clicks_300", title: "İlk Kazma Vuruşları", description: "300 kez madene tıkla", targetValue: 300, type: .clicks, gemReward: 2),
+        GameQuest(id: "q_depth_250", title: "Bakır Damarına Ulaş", description: "250 metre derinliğe in", targetValue: 250, type: .depth, gemReward: 2),
+        GameQuest(id: "q_gold_100k", title: "Küçük Maden Sahibi", description: "Toplam 100.000 Altın topla", targetValue: 100000, type: .totalGold, gemReward: 3),
+        GameQuest(id: "q_clicks_1000", title: "Yorulmak Bilmeyen Kol", description: "1.000 kez madene tıkla", targetValue: 1000, type: .clicks, gemReward: 3),
+        GameQuest(id: "q_shafts_2", title: "Şaft Genişletme", description: "En az 2 maden şaftının kilidini aç", targetValue: 2, type: .shafts, gemReward: 3),
+        GameQuest(id: "q_depth_750", title: "Demir Çağı", description: "750 metre derinliğe in", targetValue: 750, type: .depth, gemReward: 4),
+        GameQuest(id: "q_gold_1m", title: "Altın Zengini", description: "Toplam 1.000.000 Altın madenciliği yap", targetValue: 1000000, type: .totalGold, gemReward: 4),
+        GameQuest(id: "q_clicks_3000", title: "Usta Madenci", description: "3.000 kez madene tıkla", targetValue: 3000, type: .clicks, gemReward: 5),
+        GameQuest(id: "q_shafts_3", title: "Büyük Şantiye", description: "En az 3 maden şaftının kilidini aç", targetValue: 3, type: .shafts, gemReward: 5),
+        GameQuest(id: "q_artifact_1", title: "İlk Antika Kaşifi", description: "Müzede 1 antik eseri tamamen birleştir", targetValue: 1, type: .artifacts, gemReward: 5),
+        GameQuest(id: "q_depth_2000", title: "Karanlık Çukurlar", description: "2.000 metre derinliğe ulaş", targetValue: 2000, type: .depth, gemReward: 6),
+        GameQuest(id: "q_gold_10m", title: "Maden Baronu", description: "Toplam 10.000.000 Altın madenciliği yap", targetValue: 10000000, type: .totalGold, gemReward: 7),
+        GameQuest(id: "q_prestige_1", title: "Büyük Holding", description: "İlk maden devrini (Rebirth) gerçekleştir", targetValue: 1, type: .prestige, gemReward: 8),
+        GameQuest(id: "q_clicks_10000", title: "Efsanevi Kazıcı", description: "10.000 kez madene tıkla", targetValue: 10000, type: .clicks, gemReward: 8),
+        GameQuest(id: "q_artifacts_3", title: "Büyük Koleksiyoner", description: "Müzede 3 antik eseri tamamen tamamla", targetValue: 3, type: .artifacts, gemReward: 10)
     ]
     
     // MARK: - Uçan Şans Sandığı & Çılgınlık Modu (Frenzy) & Alevli Kombo Barı

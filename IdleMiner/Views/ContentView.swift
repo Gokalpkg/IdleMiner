@@ -110,6 +110,7 @@ struct ContentView: View {
                 bottomDevelopmentSheet
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .ignoresSafeArea(edges: .bottom)
             .ignoresSafeArea(.keyboard)
             
             // MARK: - Çevrimdışı Gelir Modalı
