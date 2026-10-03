@@ -87,13 +87,13 @@ struct MerchantOffer: Identifiable, Codable {
                 )
             )
         } else if choice == 1 {
-            let diamondBuyCost = max(800.0, passiveIncome * 200.0 + clickPower * 80.0)
+            let diamondBuyCost = max(2500.0, passiveIncome * 350.0 + clickPower * 120.0)
             offers.append(
                 MerchantOffer(
                     id: "offer_gems_\(UUID().uuidString.prefix(6))",
                     itemType: .shadowDiamondBuy,
                     title: "Kara Borsa Elmas Paketi",
-                    description: "Altın karşılığında gizlice 6 parlak Elmas satın al.",
+                    description: "Altın karşılığında gizlice 3 parlak Elmas satın al.",
                     icon: "suit.diamond.fill",
                     currency: .gold,
                     cost: diamondBuyCost

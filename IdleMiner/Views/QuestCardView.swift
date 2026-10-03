@@ -6,14 +6,30 @@ struct QuestCardView: View {
     let currentDepth: Double
     let totalGold: Double
     let prestigeLevel: Int
+    var unlockedArtifactsCount: Int = 0
+    var shaftsCount: Int = 0
     let onClaim: () -> Void
     
     private var progress: Double {
-        quest.progress(currentClicks: currentClicks, currentDepth: currentDepth, totalGold: totalGold, prestigeLevel: prestigeLevel)
+        quest.progress(
+            currentClicks: currentClicks,
+            currentDepth: currentDepth,
+            totalGold: totalGold,
+            prestigeLevel: prestigeLevel,
+            unlockedArtifactsCount: unlockedArtifactsCount,
+            shaftsCount: shaftsCount
+        )
     }
     
     private var isCompleted: Bool {
-        quest.isCompleted(currentClicks: currentClicks, currentDepth: currentDepth, totalGold: totalGold, prestigeLevel: prestigeLevel)
+        quest.isCompleted(
+            currentClicks: currentClicks,
+            currentDepth: currentDepth,
+            totalGold: totalGold,
+            prestigeLevel: prestigeLevel,
+            unlockedArtifactsCount: unlockedArtifactsCount,
+            shaftsCount: shaftsCount
+        )
     }
     
     var body: some View {

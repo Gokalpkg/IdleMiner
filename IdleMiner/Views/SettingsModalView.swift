@@ -217,12 +217,15 @@ struct SettingsModalView: View {
             
             Spacer()
             
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .tint(.yellow)
-                .onChange(of: isOn.wrappedValue) { val in
-                    onChange(val)
+            Toggle("", isOn: Binding(
+                get: { isOn.wrappedValue },
+                set: { newVal in
+                    isOn.wrappedValue = newVal
+                    onChange(newVal)
                 }
+            ))
+            .labelsHidden()
+            .tint(.yellow)
         }
     }
     

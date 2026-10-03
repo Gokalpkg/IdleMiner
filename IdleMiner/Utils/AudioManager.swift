@@ -86,6 +86,7 @@ final class AudioManager: ObservableObject {
     
     // MARK: - Haptik Geri Bildirim (Yalnızca isHapticsEnabled açıkken çalışır)
     func triggerImpact(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
+        // Kesin kontrol: ayar kapalıysa ASLA titreşim çalıştırma
         guard isHapticsEnabled else { return }
         
         switch style {
@@ -111,6 +112,7 @@ final class AudioManager: ObservableObject {
     }
     
     func triggerNotification(type: UINotificationFeedbackGenerator.FeedbackType) {
+        // Kesin kontrol: ayar kapalıysa ASLA titreşim çalıştırma
         guard isHapticsEnabled else { return }
         notificationGenerator.notificationOccurred(type)
         notificationGenerator.prepare()

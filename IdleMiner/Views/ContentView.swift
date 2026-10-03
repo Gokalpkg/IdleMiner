@@ -86,7 +86,7 @@ struct ContentView: View {
                         }
                     )
                     
-                    // MARK: - Gizemli Gezgin Tüccar Karşılaşması (3 Dakika Canlı)
+                    // MARK: - Gizemli Gezgin Tüccar Karşılaşması (2 Dakika Canlı)
                     if viewModel.isMerchantActive {
                         merchantEncounterBar
                     }
@@ -802,6 +802,8 @@ struct ContentView: View {
                             currentDepth: viewModel.depth,
                             totalGold: viewModel.totalGoldMined,
                             prestigeLevel: viewModel.prestigeLevel,
+                            unlockedArtifactsCount: viewModel.artifacts.filter { $0.isUnlocked }.count,
+                            shaftsCount: viewModel.shafts.filter { $0.isUnlocked }.count,
                             onClaim: {
                                 viewModel.claimQuestReward(quest)
                             }
