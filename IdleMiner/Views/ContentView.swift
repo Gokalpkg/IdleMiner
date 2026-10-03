@@ -104,13 +104,12 @@ struct ContentView: View {
                     
                     Spacer(minLength: 4)
                 }
+                .padding(.horizontal, 16)
                 
-                // MARK: - Geliştirme & Yönetim Paneli (Tamamen ortalanmış ve kenarlardan taşmayan kart)
+                // MARK: - Geliştirme & Yönetim Paneli (Tam Ekran, Kenarlara ve Alt Köşelere Tam Oturan Panel)
                 bottomDevelopmentSheet
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 6)
             .ignoresSafeArea(.keyboard)
             
             // MARK: - Çevrimdışı Gelir Modalı
@@ -700,21 +699,21 @@ struct ContentView: View {
     // MARK: - Geliştirme & Yönetim Paneli
     private var bottomDevelopmentSheet: some View {
         VStack(spacing: 8) {
-            // Sekme Seçici (Ekipman, Müze, Elmas, Görev)
+            // Sekme Seçici (Ekipman, Şaftlar, Müze, Elmas, Görev)
             tabPicker
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
             
             // Sekme İçeriği (Genişletilmiş Kaydırılabilir Liste)
             tabContentView
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             Color(red: 0.10, green: 0.10, blue: 0.14)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous)
                         .stroke(
                             LinearGradient(
                                 colors: [Color.white.opacity(0.18), Color.white.opacity(0.04)],
@@ -724,7 +723,8 @@ struct ContentView: View {
                             lineWidth: 1
                         )
                 )
-                .shadow(color: Color.black.opacity(0.7), radius: 12, x: 0, y: 2)
+                .ignoresSafeArea(edges: .bottom)
+                .shadow(color: Color.black.opacity(0.7), radius: 12, x: 0, y: -2)
         )
     }
     

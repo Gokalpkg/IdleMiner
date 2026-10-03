@@ -16,13 +16,13 @@ enum Rarity: String, Codable, CaseIterable {
         }
     }
     
-    // Dengeli düşme olasılıkları (Efsaneviler çok daha nadir)
+    // Çok daha nadir ve değerli düşme olasılıkları
     var dropChance: Double {
         switch self {
-        case .common: return 0.012     // %1.2
-        case .rare: return 0.004       // %0.4
-        case .epic: return 0.0012      // %0.12
-        case .legendary: return 0.0003 // %0.03
+        case .common: return 0.0018     // %0.18
+        case .rare: return 0.0006       // %0.06
+        case .epic: return 0.0002       // %0.02
+        case .legendary: return 0.00005 // %0.005
         }
     }
     

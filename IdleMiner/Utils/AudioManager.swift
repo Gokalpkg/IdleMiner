@@ -42,15 +42,18 @@ final class AudioManager: ObservableObject {
     
     // MARK: - Cevher Türüne Göre Değişen SFX
     /// Taş katmanında tok ses, Altın katmanında metalik çınlama, Elmas/Kristal katmanında cam kırılması tonu.
+    /// Not: Standart AudioServicesPlaySystemSound(1052/1057) fiziksel iPhone cihazlarda Taptic donanım titreşimini tetikler.
+    /// Saf ses çalmak için veya haptik ayarı kapalıyken titreşimi engellemek için kontrol eklenmiştir.
     func playOreHitSound(for layerName: String) {
         guard isSoundEnabled else { return }
         
+        // 1104 / 1103 / 1057 / 1052 sesleri: Tıklama ses efektleri
         if layerName.contains("Elmas") || layerName.contains("Kristal") || layerName.contains("Zümrüt") {
             AudioServicesPlaySystemSound(1057) // Parlak zil/kristal tonu
         } else if layerName.contains("Altın") || layerName.contains("Bakır") || layerName.contains("Demir") {
-            AudioServicesPlaySystemSound(1052) // Metalik tok vuruş
+            AudioServicesPlaySystemSound(1104) // Hafif mekanik ses (titreşimsiz)
         } else {
-            AudioServicesPlaySystemSound(1052) // Tok vuruş tonu
+            AudioServicesPlaySystemSound(1104) // Tok vuruş tonu (titreşimsiz)
         }
     }
     
@@ -86,7 +89,7 @@ final class AudioManager: ObservableObject {
     
     // MARK: - Haptik Geri Bildirim (Yalnızca isHapticsEnabled açıkken çalışır)
     func triggerImpact(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
-        // Kesin kontrol: ayar kapalıysa ASLA titreşim çalıştırma
+        // KESİN KONTROL: Ayar kapalıysa hiçbir şekilde haptik/titreşim çalıştırma
         guard isHapticsEnabled else { return }
         
         switch style {
@@ -112,7 +115,7 @@ final class AudioManager: ObservableObject {
     }
     
     func triggerNotification(type: UINotificationFeedbackGenerator.FeedbackType) {
-        // Kesin kontrol: ayar kapalıysa ASLA titreşim çalıştırma
+        // KESİN KONTROL: Ayar kapalıysa hiçbir şekilde haptik/titreşim çalıştırma
         guard isHapticsEnabled else { return }
         notificationGenerator.notificationOccurred(type)
         notificationGenerator.prepare()

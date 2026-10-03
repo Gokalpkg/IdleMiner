@@ -100,78 +100,101 @@ final class GameViewModel: ObservableObject {
             id: "buff_pickaxe",
             name: "Elmas Kazma Ucu",
             icon: "hammer.circle.fill",
-            description: "Kalıcı +%50 Tıklama Gücü",
-            gemCost: 15,
+            description: "Kalıcı +%40 Tıklama Gücü",
+            gemCost: 20,
             isPurchased: false,
-            clickMultiplierBonus: 1.5,
+            clickMultiplierBonus: 1.4,
             passiveMultiplierBonus: 1.0
         ),
         SpecialBuff(
             id: "buff_magnet",
             name: "Manyetik Cevher Çekici",
             icon: "bolt.circle.fill",
-            description: "Kalıcı +%50 Pasif Maden Geliri",
-            gemCost: 20,
+            description: "Kalıcı +%35 Pasif Maden Geliri",
+            gemCost: 25,
             isPurchased: false,
             clickMultiplierBonus: 1.0,
-            passiveMultiplierBonus: 1.5
+            passiveMultiplierBonus: 1.35
         ),
         SpecialBuff(
             id: "buff_drill_overclock",
             name: "Titanyum Matkap Çarkı",
             icon: "gearshape.2.fill",
-            description: "Kalıcı +%40 Tıklama ve +%40 Pasif Gelir",
-            gemCost: 35,
+            description: "Kalıcı +%35 Tıklama ve +%35 Pasif Gelir",
+            gemCost: 40,
             isPurchased: false,
-            clickMultiplierBonus: 1.4,
-            passiveMultiplierBonus: 1.4
+            clickMultiplierBonus: 1.35,
+            passiveMultiplierBonus: 1.35
+        ),
+        SpecialBuff(
+            id: "buff_lucky_charm",
+            name: "Uğurlu Mağara Tılsımı",
+            icon: "sparkles",
+            description: "Şans sandıklarının geliş sıklığını ve süresini artırır",
+            gemCost: 45,
+            isPurchased: false,
+            clickMultiplierBonus: 1.15,
+            passiveMultiplierBonus: 1.15
         ),
         SpecialBuff(
             id: "buff_prestige_booster",
             name: "Yatırımcı Güveni",
             icon: "crown.fill",
-            description: "Tüm kazancı kalıcı olarak %75 artırır",
-            gemCost: 55,
+            description: "Tüm kazancı kalıcı olarak %50 artırır",
+            gemCost: 65,
             isPurchased: false,
-            clickMultiplierBonus: 1.75,
-            passiveMultiplierBonus: 1.75
+            clickMultiplierBonus: 1.5,
+            passiveMultiplierBonus: 1.5
+        ),
+        SpecialBuff(
+            id: "buff_dark_matter",
+            name: "Karanlık Madde Reaktörü",
+            icon: "flame.circle.fill",
+            description: "Kalıcı +%60 Tıklama ve Çılgınlık Modu çarpanı",
+            gemCost: 85,
+            isPurchased: false,
+            clickMultiplierBonus: 1.6,
+            passiveMultiplierBonus: 1.2
         ),
         SpecialBuff(
             id: "buff_ancient_resonance",
             name: "Antik Yeraltı Rezonansı",
             icon: "sparkles.rectangle.stack.fill",
-            description: "Müze ve maden uyumu: Kalıcı 2× Tıklama Gücü",
-            gemCost: 80,
+            description: "Müze ve maden uyumu: Kalıcı 1.8× Tıklama Gücü",
+            gemCost: 110,
             isPurchased: false,
-            clickMultiplierBonus: 2.0,
+            clickMultiplierBonus: 1.8,
             passiveMultiplierBonus: 1.0
         ),
         SpecialBuff(
             id: "buff_celestial_core",
             name: "Kozmik Maden Çekirdeği",
             icon: "globe.americas.fill",
-            description: "Yeraltının kalbi: Kalıcı 2× Pasif Gelir ve Tıklama",
-            gemCost: 120,
+            description: "Yeraltının kalbi: Kalıcı 1.75× Pasif Gelir ve Tıklama",
+            gemCost: 150,
             isPurchased: false,
-            clickMultiplierBonus: 2.0,
-            passiveMultiplierBonus: 2.0
+            clickMultiplierBonus: 1.75,
+            passiveMultiplierBonus: 1.75
         )
     ]
     
-    // MARK: - Görev & Başarım Sistemi (Dengelenmiş Elmas Ödülleri & Zengin Hedefler)
+    // MARK: - Görev & Başarım Sistemi (Kıymetli Elmaslar, Dengeli ve Zorlayıcı Hedefler)
     @Published var quests: [GameQuest] = [
-        GameQuest(id: "q_clicks_100", title: "İlk Kazma Vuruşları", description: "100 kez madene tıkla", targetValue: 100, type: .clicks, gemReward: 2),
-        GameQuest(id: "q_depth_150", title: "Bakır Damarına Ulaş", description: "150 metre derinliğe in", targetValue: 150, type: .depth, gemReward: 3),
-        GameQuest(id: "q_shafts_2", title: "Şaft Genişletme", description: "En az 2 maden şaftının kilidini aç", targetValue: 2, type: .shafts, gemReward: 3),
-        GameQuest(id: "q_gold_25k", title: "Küçük Maden Sahibi", description: "Toplam 25.000 Altın topla", targetValue: 25000, type: .totalGold, gemReward: 4),
-        GameQuest(id: "q_clicks_500", title: "Yorulmak Bilmeyen Kol", description: "500 kez madene tıkla", targetValue: 500, type: .clicks, gemReward: 4),
-        GameQuest(id: "q_depth_500", title: "Demir Çağı", description: "500 metre derinliğe in", targetValue: 500, type: .depth, gemReward: 5),
-        GameQuest(id: "q_artifact_1", title: "İlk Antika Kaşifi", description: "Müzede 1 antik eseri tamamen birleştir", targetValue: 1, type: .artifacts, gemReward: 5),
-        GameQuest(id: "q_gold_500k", title: "Hazine Avcısı", description: "Toplam 500.000 Altın madenciliği yap", targetValue: 500000, type: .totalGold, gemReward: 6),
-        GameQuest(id: "q_clicks_2000", title: "Usta Madenci", description: "2.000 kez madene tıkla", targetValue: 2000, type: .clicks, gemReward: 6),
-        GameQuest(id: "q_prestige_1", title: "Büyük Holding", description: "İlk maden devrini (Rebirth) gerçekleştir", targetValue: 1, type: .prestige, gemReward: 8),
-        GameQuest(id: "q_depth_1500", title: "Karanlık Çukurlar", description: "1.500 metre derinliğe ulaş", targetValue: 1500, type: .depth, gemReward: 8),
-        GameQuest(id: "q_artifacts_3", title: "Koleksiyoner", description: "Müzede 3 antik eseri tamamen tamamla", targetValue: 3, type: .artifacts, gemReward: 10)
+        GameQuest(id: "q_clicks_300", title: "İlk Kazma Vuruşları", description: "300 kez madene tıkla", targetValue: 300, type: .clicks, gemReward: 1),
+        GameQuest(id: "q_depth_250", title: "Bakır Damarına Ulaş", description: "250 metre derinliğe in", targetValue: 250, type: .depth, gemReward: 1),
+        GameQuest(id: "q_gold_100k", title: "Küçük Maden Sahibi", description: "Toplam 100.000 Altın topla", targetValue: 100000, type: .totalGold, gemReward: 2),
+        GameQuest(id: "q_clicks_1000", title: "Yorulmak Bilmeyen Kol", description: "1.000 kez madene tıkla", targetValue: 1000, type: .clicks, gemReward: 2),
+        GameQuest(id: "q_shafts_2", title: "Şaft Genişletme", description: "En az 2 maden şaftının kilidini aç", targetValue: 2, type: .shafts, gemReward: 2),
+        GameQuest(id: "q_depth_750", title: "Demir Çağı", description: "750 metre derinliğe in", targetValue: 750, type: .depth, gemReward: 3),
+        GameQuest(id: "q_gold_1m", title: "Altın Zengini", description: "Toplam 1.000.000 Altın madenciliği yap", targetValue: 1000000, type: .totalGold, gemReward: 3),
+        GameQuest(id: "q_clicks_3000", title: "Usta Madenci", description: "3.000 kez madene tıkla", targetValue: 3000, type: .clicks, gemReward: 3),
+        GameQuest(id: "q_shafts_3", title: "Büyük Şantiye", description: "En az 3 maden şaftının kilidini aç", targetValue: 3, type: .shafts, gemReward: 4),
+        GameQuest(id: "q_artifact_1", title: "İlk Antika Kaşifi", description: "Müzede 1 antik eseri tamamen birleştir", targetValue: 1, type: .artifacts, gemReward: 4),
+        GameQuest(id: "q_depth_2000", title: "Karanlık Çukurlar", description: "2.000 metre derinliğe ulaş", targetValue: 2000, type: .depth, gemReward: 4),
+        GameQuest(id: "q_gold_10m", title: "Maden Baronu", description: "Toplam 10.000.000 Altın madenciliği yap", targetValue: 10000000, type: .totalGold, gemReward: 5),
+        GameQuest(id: "q_prestige_1", title: "Büyük Holding", description: "İlk maden devrini (Rebirth) gerçekleştir", targetValue: 1, type: .prestige, gemReward: 6),
+        GameQuest(id: "q_clicks_10000", title: "Efsanevi Kazıcı", description: "10.000 kez madene tıkla", targetValue: 10000, type: .clicks, gemReward: 6),
+        GameQuest(id: "q_artifacts_3", title: "Büyük Koleksiyoner", description: "Müzede 3 antik eseri tamamen tamamla", targetValue: 3, type: .artifacts, gemReward: 8)
     ]
     
     // MARK: - Uçan Şans Sandığı & Çılgınlık Modu (Frenzy) & Alevli Kombo Barı
@@ -179,7 +202,7 @@ final class GameViewModel: ObservableObject {
     @Published var isFrenzyActive: Bool = false
     @Published var frenzyTimeRemaining: Double = 0.0
     @Published var bannerNotification: String?
-    private var chestSpawnCooldown: Double = 35.0
+    private var chestSpawnCooldown: Double = 50.0 // Daha dengeli sandık süresi
     
     // Alevli Kombo Barı (Her seri tıkta artar, tıklanmadıkça yavaşça söner)
     @Published var comboProgress: Double = 0.0 // 0.0 - 1.0 aralığı
@@ -419,7 +442,7 @@ final class GameViewModel: ObservableObject {
     
     // MARK: - Eser ve Parça Düşme (Drop) Mantığı
     /// Oyuncu madene tıkladığında veya saniyelik pasif kazanç sağlandığında arka planda çalışır.
-    /// Henüz tamamlanmamış eserler arasından rastgele zar atılır.
+    /// Eser parçalarının düşmesi çok nadir, heyecan verici ve kıymetli bir andır.
     func checkArtifactDrop(isPassive: Bool = false) {
         // Zaten ekranda bekleyen keşif modalı varsa yeni bir tane tetikleme
         guard newlyDiscoveredArtifact == nil else { return }
@@ -431,32 +454,41 @@ final class GameViewModel: ObservableObject {
         let museum = calculateMuseumMultipliers()
         let dropRateMultiplier = 1.0 + museum.dropRateBoost
         
-        // Pasif kazanç kontrolünde tıklamaya göre daha seyrek şans vermek için katsayı
-        let rateDampener = isPassive ? 0.35 : 1.0
+        // Pasif kazanç kontrolünde tıklamaya göre daha seyrek şans (tıklamada %0.08, pasifte %0.02 temel şans)
+        let baseDropRollChance = isPassive ? 0.0002 : 0.0008
+        let finalDropChance = baseDropRollChance * dropRateMultiplier
         
-        // Tamamlanmamış eserler arasından zar atımı (Önce en nadir olanlardan başlar)
-        for index in incompleteIndices.shuffled() {
-            let artifact = artifacts[index]
-            let effectiveChance = artifact.rarity.dropChance * dropRateMultiplier * rateDampener
-            let roll = Double.random(in: 0.0...1.0)
-            
-            if roll < effectiveChance {
-                // Parça Düştü!
-                artifacts[index].collectedFragments += 1
-                if artifacts[index].collectedFragments >= artifacts[index].totalFragments {
-                    artifacts[index].isUnlocked = true
-                    AudioManager.shared.playCelebrationSound()
-                    AudioManager.shared.triggerNotification(type: .success)
-                } else {
-                    AudioManager.shared.playUpgradeSound()
-                    AudioManager.shared.triggerNotification(type: .warning)
-                }
-                
-                newlyDiscoveredArtifact = artifacts[index]
-                saveGame()
-                break
+        guard Double.random(in: 0.0...1.0) < finalDropChance else { return }
+        
+        // Şans başarılı oldu, şimdi tamamlanmamış eserler arasından ağırlıklı seçim yap:
+        // Ağırlıklar: Common: 60, Rare: 25, Epic: 12, Legendary: 3
+        var weightedPool: [Int] = []
+        for index in incompleteIndices {
+            let weight: Int
+            switch artifacts[index].rarity {
+            case .common: weight = 60
+            case .rare: weight = 25
+            case .epic: weight = 12
+            case .legendary: weight = 3
             }
+            weightedPool.append(contentsOf: Array(repeating: index, count: weight))
         }
+        
+        guard let chosenIndex = weightedPool.randomElement() else { return }
+        
+        // Parça Düştü!
+        artifacts[chosenIndex].collectedFragments += 1
+        if artifacts[chosenIndex].collectedFragments >= artifacts[chosenIndex].totalFragments {
+            artifacts[chosenIndex].isUnlocked = true
+            AudioManager.shared.playCelebrationSound()
+            AudioManager.shared.triggerNotification(type: .success)
+        } else {
+            AudioManager.shared.playUpgradeSound()
+            AudioManager.shared.triggerNotification(type: .warning)
+        }
+        
+        newlyDiscoveredArtifact = artifacts[chosenIndex]
+        saveGame()
     }
     
     // MARK: - Vuruş Sonucu Modeli
@@ -720,7 +752,7 @@ final class GameViewModel: ObservableObject {
             totalGoldMined += bonusGold
             showBanner("💰 ŞANSLI HAZİNE: +\(BigNumberFormatter.format(bonusGold)) Altın!")
         default:
-            let gemReward = Int.random(in: 2...5)
+            let gemReward = 1 // Dengeli ve kıymetli: her sandıktan 1 elmas
             gems += gemReward
             showBanner("💎 ŞANSLI KEŞİF: +\(gemReward) Elmas!")
         }
